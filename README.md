@@ -44,3 +44,5 @@ The Backend is being prepared first so that it will be ready to integrate with t
 ## 📌 Note
 
 This project is still under active development, and new features will be added progressively.
+
+This project was developed by Monees Alshwishey as part of my Full Stack Web Development learning journey.

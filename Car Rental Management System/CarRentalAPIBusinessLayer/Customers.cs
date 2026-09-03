@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static CarRentalAPIBusinessLayer.clsEmployee;
 
 namespace CarRentalAPIBusinessLayer
 {
@@ -13,12 +14,24 @@ namespace CarRentalAPIBusinessLayer
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+            DLNoAlreadyUsed,
+            EmailAlreadyUsed,
+            ExpiredDriverlicense,
+            DatabaseError
+        }
+
 
         public int CustomerID { get; set; }
         public string DrivingLicenseNo { get; set; }
         public DateTime DrivingLicenseExpiryDate { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreateDate { get; set; }
+
+        public string OldEmail { get; }
+        public string OldDrivingLicenseNo { get; }
 
 
         public CustomerDTO CDTO
@@ -47,6 +60,8 @@ namespace CarRentalAPIBusinessLayer
             base.Email       = CDTO.PDTO.Email;
             base.ImagePath   = CDTO.PDTO.ImagePath;
 
+            this.OldEmail = CDTO.PDTO.Email;
+            this.OldDrivingLicenseNo = CDTO.DrivingLicenseNo;
 
             this.Mode = cMode;
         }
@@ -66,10 +81,12 @@ namespace CarRentalAPIBusinessLayer
 
         private bool _AddNewCustomer()
         {
-            this.CustomerID = clsCustomerData.AddNewCustomer(CDTO);
+            int PersonID = -1;
+
+            this.CustomerID = clsCustomerData.AddNewCustomer(CDTO ,ref PersonID);
 
             if (CustomerID != -1)
-                this.PersonID = Find(this.CustomerID)?.PersonID ?? -1;
+                this.PersonID = PersonID;
 
             return (CustomerID != -1);
         }
@@ -81,28 +98,58 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+            if (DrivingLicenseExpiryDate.Date <= DateTime.UtcNow.Date)
+                return enSaveResult.ExpiredDriverlicense;
+
+
             switch (Mode)
             {
                 case enMode.AddNew:
 
+                    if (!IsDrivingLicenseNoUnique(DrivingLicenseNo))
+                        return enSaveResult.DLNoAlreadyUsed;
+
+                    if (!IsEmailUnique(this.Email))
+                        return enSaveResult.EmailAlreadyUsed;
+
                     if (_AddNewCustomer())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
                 case enMode.Update:
 
-                    return (_UpdateCustomer());
+                    if (this.DrivingLicenseNo != this.OldDrivingLicenseNo)
+                    {
+                        if (!IsDrivingLicenseNoUnique(DrivingLicenseNo))
+                            return enSaveResult.DLNoAlreadyUsed;
+                    }
+
+                    if (this.Email != this.OldEmail)
+                    {
+                        if (!IsEmailUnique(this.Email))
+                            return enSaveResult.EmailAlreadyUsed;
+                    }
+
+                    if (_UpdateCustomer())
+                    {
+                        return enSaveResult.Success;
+                    }
+                    else
+                    {
+                        return enSaveResult.DatabaseError;
+                    }
 
             }
 
-            return false;
+
+            return enSaveResult.DatabaseError;
         }
 
 
@@ -125,6 +172,11 @@ namespace CarRentalAPIBusinessLayer
         public static List<CustomerDTO> GetAllDeactivateCustomers()
         {
             return clsCustomerData.GetAllDeactivateCustomers();
+        }
+
+        public static bool IsDrivingLicenseNoUnique(string DrivingLicenseNo)
+        {
+            return clsCustomerData.IsDrivingLicenseNoUnique(DrivingLicenseNo);
         }
 
     }

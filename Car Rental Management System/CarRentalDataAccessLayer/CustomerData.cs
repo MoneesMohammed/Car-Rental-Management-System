@@ -67,7 +67,7 @@ namespace CarRentalDataAccessLayer
         }
 
 
-        public static int AddNewCustomer(CustomerDTO CDTO)
+        public static int AddNewCustomer(CustomerDTO CDTO, ref int PersonID)
         {
             int ID = -1;
             SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
@@ -90,7 +90,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@Phone", CDTO.PDTO.Phone);
             command.Parameters.AddWithValue("@Email", CDTO.PDTO.Email);
 
-            if (CDTO.PDTO.ImagePath != "")
+            if (CDTO.PDTO.ImagePath != null)
                 command.Parameters.AddWithValue("@ImagePath", CDTO.PDTO.ImagePath);
             else
                 command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
@@ -102,6 +102,12 @@ namespace CarRentalDataAccessLayer
             };
             command.Parameters.Add(outputParameter);
 
+            SqlParameter PersonIDParam = new SqlParameter("@NewPersonID", SqlDbType.Int)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(PersonIDParam);
+
             try
             {
                 connection.Open();
@@ -110,6 +116,11 @@ namespace CarRentalDataAccessLayer
                 if (outputParameter.Value != DBNull.Value)
                 {
                     ID = (int)outputParameter.Value;
+                }
+
+                if (PersonIDParam.Value != DBNull.Value)
+                {
+                    PersonID = (int)PersonIDParam.Value;
                 }
 
             }
@@ -148,7 +159,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@Phone", CDTO.PDTO.Phone);
             command.Parameters.AddWithValue("@Email", CDTO.PDTO.Email);
 
-            if (CDTO.PDTO.ImagePath != "")
+            if (CDTO.PDTO.ImagePath != null)
                 command.Parameters.AddWithValue("@ImagePath", CDTO.PDTO.ImagePath);
             else
                 command.Parameters.AddWithValue("@ImagePath", DBNull.Value);
@@ -356,6 +367,44 @@ namespace CarRentalDataAccessLayer
             return CustomerList;
         }
 
+
+        public static bool IsDrivingLicenseNoUnique(string DrivingLicenseNo)
+        {
+            bool IsUnique = false;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_CheckDrivingLicenseNoUnique";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@DrivingLicenseNo", DrivingLicenseNo);
+
+
+            SqlParameter isUniqueParam = new SqlParameter("@IsUnique", SqlDbType.Bit)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(isUniqueParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (isUniqueParam.Value != DBNull.Value)
+                {
+                    IsUnique = (bool)isUniqueParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return false; }
+            finally
+            { connection.Close(); }
+
+            return IsUnique;
+        }
 
     }
 

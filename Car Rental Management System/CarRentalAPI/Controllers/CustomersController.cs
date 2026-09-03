@@ -64,16 +64,33 @@ namespace CarRentalAPI.Controllers
 
             var Customer = new clsCustomer(NewCustomerDTO);
 
-            if (!Customer.Save())
+
+            var result = Customer.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding Customer." });
+                case clsCustomer.enSaveResult.Success:
+
+                    NewCustomerDTO.CustomerID = Customer.CustomerID;
+                    NewCustomerDTO.PDTO.PersonID = Customer.PersonID;
+                    NewCustomerDTO.CreateDate = DateTime.Now;
+
+                    return CreatedAtRoute("GetCustomerByID", new { ID = NewCustomerDTO.CustomerID }, NewCustomerDTO);
+
+                case clsCustomer.enSaveResult.DLNoAlreadyUsed:
+                    return BadRequest("Driving License No. already used.");
+
+                case clsCustomer.enSaveResult.ExpiredDriverlicense:
+                    return BadRequest("Expired Driver license.");
+
+                
+                case clsCustomer.enSaveResult.EmailAlreadyUsed:
+                    return BadRequest("Email already used.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding Customer." });
             }
 
-            NewCustomerDTO.CustomerID = Customer.CustomerID;
-            NewCustomerDTO.PDTO.PersonID = Customer.PersonID;
-            NewCustomerDTO.CreateDate = DateTime.Now;
-
-            return CreatedAtRoute("GetCustomerByID", new { ID = NewCustomerDTO.CustomerID }, NewCustomerDTO);
         }
 
 
@@ -113,13 +130,27 @@ namespace CarRentalAPI.Controllers
             Customer.ImagePath   = updatedCustomer.PDTO.ImagePath;
 
 
+            var result = Customer.Save();
 
-            if (!Customer.Save())
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating Customer." });
+                case clsCustomer.enSaveResult.Success:
+                    return Ok(Customer.CDTO);
+
+                case clsCustomer.enSaveResult.DLNoAlreadyUsed:
+                    return BadRequest("Driving License No. already used.");
+
+                case clsCustomer.enSaveResult.ExpiredDriverlicense:
+                    return BadRequest("Expired Driver license.");
+
+                case clsCustomer.enSaveResult.EmailAlreadyUsed:
+                    return BadRequest("Email already used.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding Customer." });
             }
 
-            return Ok(Customer.CDTO);
+
         }
 
 
@@ -168,16 +199,16 @@ namespace CarRentalAPI.Controllers
         }
 
 
-        [HttpGet("AllDeactivate", Name = "GetAllDeactivateCustomers")]
+        [HttpGet("Deactivated", Name = "GetDeactivatedCustomers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 
-        public ActionResult<IEnumerable<CustomerDTO>> GetAllDeactivateCustomers()
+        public ActionResult<IEnumerable<CustomerDTO>> GetDeactivatedCustomers()
         {
             List<CustomerDTO> CustomerList = clsCustomer.GetAllDeactivateCustomers();
 
             if (CustomerList.Count == 0)
-                return NotFound("No Customers Found!");
+                return NotFound("No Deactivated Customers Were Found!");
 
             return Ok(CustomerList);
         }

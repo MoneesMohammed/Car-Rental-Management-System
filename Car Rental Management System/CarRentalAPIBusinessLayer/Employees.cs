@@ -8,12 +8,23 @@ namespace CarRentalAPIBusinessLayer
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+            JobTitleNotFound,
+            BranchNotFound,
+            BranchInactive,
+            EmailAlreadyUsed,
+            DatabaseError
+        }
+
         public int EmployeeID { get; set; }
         public int JobTitleID { get; set; }
         public int WorkingBranchID { get; set; }
         public DateTime HireDate { get; set; }
         public bool IsActive { get; set; }
 
+        public string OldEmail { get;}
 
         public EmployeeDTO EDTO
         {
@@ -41,6 +52,8 @@ namespace CarRentalAPIBusinessLayer
             this.Email       = EDTO.PDTO.Email;
             this.ImagePath   = EDTO.PDTO.ImagePath;
 
+            this.OldEmail = EDTO.PDTO.Email;
+
 
             this.Mode = cMode;
         }
@@ -61,10 +74,11 @@ namespace CarRentalAPIBusinessLayer
 
         private bool _AddNewEmployee()
         {
-            this.EmployeeID = clsEmployeeData.AddNewEmployee(EDTO);
+            int PersonID = -1;
+            this.EmployeeID = clsEmployeeData.AddNewEmployee(EDTO ,ref PersonID);
 
             if (EmployeeID != -1)
-                this.PersonID = Find(this.EmployeeID)?.PersonID ?? -1;
+                this.PersonID = PersonID;
 
             return (EmployeeID != -1);
         }
@@ -76,28 +90,57 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+            if (clsJobTitle.Find(this.JobTitleID) == null)
+                return enSaveResult.JobTitleNotFound;
+
+            var branch = clsBranch.Find(this.WorkingBranchID);
+
+            if (branch == null)
+                return enSaveResult.BranchNotFound;
+
+            if (!branch.IsActive)
+                return enSaveResult.BranchInactive;
+
             switch (Mode)
             {
                 case enMode.AddNew:
 
+                    if (!IsEmailUnique(this.Email))
+                        return enSaveResult.EmailAlreadyUsed;
+
                     if (_AddNewEmployee())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
+
                 case enMode.Update:
 
-                    return (_UpdateEmployee());
+                    if (this.Email != this.OldEmail)
+                    {
+                        if (!IsEmailUnique(this.Email))
+                            return enSaveResult.EmailAlreadyUsed;
+                    }
+
+                    if (_UpdateEmployee())
+                    { 
+                        return enSaveResult.Success;
+                    }
+                    else
+                    {
+                        return enSaveResult.DatabaseError;
+                    }
+
 
             }
 
-            return false;
+            return enSaveResult.DatabaseError;
         }
 
 

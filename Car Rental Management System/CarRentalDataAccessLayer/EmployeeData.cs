@@ -60,9 +60,10 @@ namespace CarRentalDataAccessLayer
         }
 
 
-        public static int AddNewEmployee(EmployeeDTO EDTO)
+        public static int AddNewEmployee(EmployeeDTO EDTO , ref int PersonID)
         {
-            int ID = -1;
+            int EmployeeID = -1 ;
+           
             SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
 
             string query = "SP_AddEmployee";
@@ -84,34 +85,45 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@Phone", EDTO.PDTO.Phone);
             command.Parameters.AddWithValue("@Email", EDTO.PDTO.Email);
 
-            if (EDTO.PDTO.ImagePath != "")
+            if (EDTO.PDTO.ImagePath != null)
                 command.Parameters.AddWithValue("@ImagePath", EDTO.PDTO.ImagePath);
             else
                 command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);
 
-            SqlParameter outputParameter = new SqlParameter("@NewEmployeeID", SqlDbType.Int)
+            SqlParameter EmployeeIDParam = new SqlParameter("@NewEmployeeID", SqlDbType.Int)
             {
                 Direction = ParameterDirection.Output
             };
-            command.Parameters.Add(outputParameter);
+            command.Parameters.Add(EmployeeIDParam);
+
+            SqlParameter PersonIDParam = new SqlParameter("@NewPersonID", SqlDbType.Int)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(PersonIDParam);
 
             try
             {
                 connection.Open();
                 command.ExecuteNonQuery();
 
-                if (outputParameter.Value != DBNull.Value)
+                if (EmployeeIDParam.Value != DBNull.Value)
                 {
-                    ID = (int)outputParameter.Value;
+                    EmployeeID = (int)EmployeeIDParam.Value;
+                }
+
+                if (PersonIDParam.Value != DBNull.Value)
+                {
+                    PersonID = (int)PersonIDParam.Value;
                 }
 
             }
             catch//(Exception ex)
-            { ID = -1; }
+            { EmployeeID = -1; }
             finally
             { connection.Close(); }
 
-            return ID;
+            return EmployeeID;
         }
 
 
@@ -142,7 +154,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@Phone", EDTO.PDTO.Phone);
             command.Parameters.AddWithValue("@Email", EDTO.PDTO.Email);
 
-            if (EDTO.PDTO.ImagePath != "")
+            if (EDTO.PDTO.ImagePath != null)
                 command.Parameters.AddWithValue("@ImagePath", EDTO.PDTO.ImagePath);
             else
                 command.Parameters.AddWithValue("@ImagePath", System.DBNull.Value);

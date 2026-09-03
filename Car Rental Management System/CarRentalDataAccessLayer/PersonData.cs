@@ -207,6 +207,61 @@ namespace CarRentalDataAccessLayer
 
             return PersonList;
         }
+
+
+        public static bool IsEmailUnique(string Email)
+        {
+            bool IsUnique = false;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_CheckEmailUnique";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@Email", Email);
+
+
+            SqlParameter isUniqueParam = new SqlParameter("@IsUnique", SqlDbType.Bit)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(isUniqueParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (isUniqueParam.Value != DBNull.Value)
+                {
+                    IsUnique = (bool)isUniqueParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return false; }
+            finally
+            { connection.Close(); }
+
+            return IsUnique;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 }

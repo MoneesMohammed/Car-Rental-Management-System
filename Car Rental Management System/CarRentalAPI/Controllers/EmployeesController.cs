@@ -32,7 +32,6 @@ namespace CarRentalAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public ActionResult<EmployeeDTO> GetEmployeeByID(int ID)
         {
             if (ID < 1)
@@ -66,14 +65,31 @@ namespace CarRentalAPI.Controllers
 
             var Employee = new clsEmployee(NewEmployeeDTO);
 
-            if (!Employee.Save())
+
+            var result = Employee.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding Employee." });
+                case clsEmployee.enSaveResult.Success:
+                    NewEmployeeDTO.EmployeeID = Employee.EmployeeID;
+                    return CreatedAtRoute("GetEmployeeByID",new { ID = Employee.EmployeeID },Employee.EDTO);
+                        
+                case clsEmployee.enSaveResult.JobTitleNotFound:
+                    return BadRequest("Job Title not found.");
+
+                case clsEmployee.enSaveResult.BranchNotFound:
+                    return BadRequest("Branch not found.");
+
+                case clsEmployee.enSaveResult.BranchInactive:
+                    return BadRequest("Branch is inactive.");
+
+                case clsEmployee.enSaveResult.EmailAlreadyUsed:
+                    return BadRequest("Email already used.");
+
+                default:
+                    return StatusCode(500, "Error adding employee.");
             }
 
-            NewEmployeeDTO.EmployeeID = Employee.EmployeeID;
-            
-            return CreatedAtRoute("GetEmployeeByID", new { ID = NewEmployeeDTO.EmployeeID }, NewEmployeeDTO);
         }
 
 
@@ -95,7 +111,8 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Employee with ID {ID} not found.");
             }
 
-            
+
+
             Employee.JobTitleID      = updatedEmployee.JobTitleID;
             Employee.WorkingBranchID = updatedEmployee.WorkingBranchID;
             Employee.HireDate        = updatedEmployee.HireDate;
@@ -114,12 +131,31 @@ namespace CarRentalAPI.Controllers
 
 
 
-            if (!Employee.Save())
+
+            var result = Employee.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating Employee." });
+                case clsEmployee.enSaveResult.Success:
+                    return Ok(Employee.EDTO);
+
+                case clsEmployee.enSaveResult.JobTitleNotFound:
+                    return BadRequest("Job Title not found.");
+
+                case clsEmployee.enSaveResult.BranchNotFound:
+                    return BadRequest("Branch not found.");
+
+                case clsEmployee.enSaveResult.BranchInactive:
+                    return BadRequest("Branch is inactive.");
+
+                case clsEmployee.enSaveResult.EmailAlreadyUsed:
+                    return BadRequest("Email already used.");
+
+                default:
+                    return StatusCode(500, "Error adding employee.");
             }
 
-            return Ok(Employee.EDTO);
+            
         }
 
 
@@ -167,15 +203,15 @@ namespace CarRentalAPI.Controllers
         }
 
 
-        [HttpGet("AllDeactivate", Name = "GetAllDeactivateEmployees")]
+        [HttpGet("Deactivated", Name = "GetDeactivatedEmployees")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<EmployeeDTO>> GetAllDeactivateEmployees()
+        public ActionResult<IEnumerable<EmployeeDTO>> GetDeactivatedEmployees()
         {
             List<EmployeeDTO> EmployeeList = clsEmployee.GetAllDeactivateEmployees();
 
             if (EmployeeList.Count == 0)
-                return NotFound("No Employees Found!");
+                return NotFound("No Deactivated Employees Were Found!");
 
             return Ok(EmployeeList);
         }

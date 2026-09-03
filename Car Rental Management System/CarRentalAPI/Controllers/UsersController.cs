@@ -177,15 +177,15 @@ namespace CarRentalAPI.Controllers
         }
 
 
-        [HttpGet("AllDeactivate", Name = "GetAllDeactivateUsers")]
+        [HttpGet("Deactivated", Name = "GetDeactivatedUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<UserDTO>> GetAllDeactivateUsers()
+        public ActionResult<IEnumerable<UserDTO>> GetDeactivatedUsers()
         {
             List<UserDTO> UserList = clsUser.GetAllDeactivateUsers();
 
             if (UserList.Count == 0)
-                return NotFound("No Users Found!");
+                return NotFound("No Deactivated Users Were Found!");
 
             return Ok(UserList);
         }

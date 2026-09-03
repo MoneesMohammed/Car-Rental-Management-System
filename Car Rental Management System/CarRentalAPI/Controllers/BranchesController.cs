@@ -151,15 +151,15 @@ namespace CarRentalAPI.Controllers
             return Ok($"Branch with ID: {ID} has been Activated.");
         }
 
-        [HttpGet("AllDeactivate", Name = "GetAllDeactivateBranches")]
+        [HttpGet("Deactivated", Name = "GetDeactivatedBranches")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<BranchDTO>> GetAllDeactivateBranches()
+        public ActionResult<IEnumerable<BranchDTO>> GetDeactivatedBranches()
         {
             List<BranchDTO> BrancheList = clsBranch.GetAllDeactivateBranches();
 
             if (BrancheList.Count == 0)
-                return NotFound("No Branches Found!");
+                return NotFound("No Deactivated Branches Were Found!");
 
             return Ok(BrancheList);
         }

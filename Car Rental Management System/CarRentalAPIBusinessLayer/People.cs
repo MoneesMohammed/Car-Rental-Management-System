@@ -74,7 +74,10 @@ namespace CarRentalAPIBusinessLayer
         //        return null;
         //}
 
-
+        public static bool IsEmailUnique(string Email)
+        {
+           return clsPersonData.IsEmailUnique(Email);
+        }
 
 
     }

@@ -13,6 +13,18 @@ namespace CarRentalAPIBusinessLayer
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+            EmployeeNotFound,
+            EmployeeInactive,
+            EmployeeAlreadyExists,
+            UserNameAlreadyUsed,
+            RoleNotFound,
+            DatabaseError
+        }
+
+
         public int UserID { get; set; }
         public int EmployeeID { get; set; }
         public int RoleID { get; set; }
@@ -23,6 +35,7 @@ namespace CarRentalAPIBusinessLayer
         public DateTime CreateDate { get; set; }
         public DateTime? LastLogin { get; set; }
 
+        public string OldUserName { get; }
 
         public UserDTO UDTO
         {
@@ -41,6 +54,8 @@ namespace CarRentalAPIBusinessLayer
             this.IsActive = UDTO.IsActive;
             this.CreateDate = UDTO.CreateDate;
             this.LastLogin = UDTO.LastLogin;
+
+            this.OldUserName = UDTO.UserName;
 
             this.Mode = cMode;
         }
@@ -84,28 +99,58 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+
+            if (clsRole.Find(this.RoleID) == null)
+                return enSaveResult.RoleNotFound;
+
+            clsEmployee? employee = clsEmployee.Find(this.EmployeeID);
+
+            if(employee == null)
+                return enSaveResult.EmployeeNotFound;
+
+            if(!employee.IsActive)
+                return enSaveResult.EmployeeInactive;
+
+
+
             switch (Mode)
             {
                 case enMode.AddNew:
 
+                    if (!IsEmployeeIDUnique(this.EmployeeID))
+                        return enSaveResult.EmployeeAlreadyExists;
+
+
+                    if (!IsUserNameUnique(this.UserName))
+                        return enSaveResult.UserNameAlreadyUsed;
+
                     if (_AddNewUser())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
                 case enMode.Update:
 
-                    return (_UpdateUser());
+                    if (this.UserName != this.OldUserName)
+                    {
+                        if (!IsUserNameUnique(this.UserName))
+                            return enSaveResult.UserNameAlreadyUsed;
+                    }
+
+                    if (_UpdateUser())
+                        return enSaveResult.Success;
+                    else
+                        return enSaveResult.DatabaseError;
 
             }
 
-            return false;
+            return enSaveResult.DatabaseError;
         }
 
 
@@ -136,6 +181,17 @@ namespace CarRentalAPIBusinessLayer
             return clsUserData.GetAllDeactivateUsers();
         }
 
+        public static bool IsUserNameUnique(string UserName)
+        { 
+            return clsUserData.IsUserNameUnique(UserName);
+        }
+
+        public static bool IsEmployeeIDUnique(int EmployeeID)
+        {
+            return clsUserData.IsEmployeeIDUnique(EmployeeID);
+        }
+
     }
+
 
 }

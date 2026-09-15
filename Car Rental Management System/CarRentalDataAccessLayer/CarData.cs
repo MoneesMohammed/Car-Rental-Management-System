@@ -75,7 +75,6 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@TransmissionType", (byte)CDTO.TransmissionType);
             command.Parameters.AddWithValue("@FuelTypeID", CDTO.FuelTypeID);
             command.Parameters.AddWithValue("@CarCategoryID", CDTO.CarCategoryID);
-            command.Parameters.AddWithValue("@CarStatus", (byte)CDTO.CarStatus);
             command.Parameters.AddWithValue("@DailyRentalPrice", CDTO.DailyRentalPrice);
             command.Parameters.AddWithValue("@CurrentMileage", CDTO.CurrentMileage);
 
@@ -131,7 +130,6 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@TransmissionType", (byte)CDTO.TransmissionType);
             command.Parameters.AddWithValue("@FuelTypeID", CDTO.FuelTypeID);
             command.Parameters.AddWithValue("@CarCategoryID", CDTO.CarCategoryID);
-            command.Parameters.AddWithValue("@CarStatus", (byte)CDTO.CarStatus);
             command.Parameters.AddWithValue("@DailyRentalPrice", CDTO.DailyRentalPrice);
             command.Parameters.AddWithValue("@CurrentMileage", CDTO.CurrentMileage);
 
@@ -292,6 +290,93 @@ namespace CarRentalDataAccessLayer
         }
 
 
+        public static short ValidateCarData(CarDTO CDTO)
+        {
+            short ResultCode = 7;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_ValidateCarData";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@PlateNumber", CDTO.PlateNumber);
+            command.Parameters.AddWithValue("@VIN", CDTO.VIN);
+            command.Parameters.AddWithValue("@FuelTypeID", CDTO.FuelTypeID);
+            command.Parameters.AddWithValue("@CategoryID", CDTO.CarCategoryID);
+            command.Parameters.AddWithValue("@CurrentBranchID", CDTO.CurrentBranchID);
+            
+
+            SqlParameter resultCodeParam = new SqlParameter("@ResultCode", SqlDbType.SmallInt)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(resultCodeParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (resultCodeParam.Value != DBNull.Value)
+                {
+                    ResultCode = (short)resultCodeParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return 7; }
+            finally
+            { connection.Close(); }
+
+            return ResultCode;
+
+        }
+
+
+        public static short ValidateCarDataForUpdate(CarDTO CDTO)
+        {
+            short ResultCode = 7;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "usp_ValidateCarDataForUpdate";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@CarID", CDTO.CarID);
+            command.Parameters.AddWithValue("@PlateNumber", CDTO.PlateNumber);
+            command.Parameters.AddWithValue("@VIN", CDTO.VIN);
+            command.Parameters.AddWithValue("@FuelTypeID", CDTO.FuelTypeID);
+            command.Parameters.AddWithValue("@CategoryID", CDTO.CarCategoryID);
+            command.Parameters.AddWithValue("@CurrentBranchID", CDTO.CurrentBranchID);
+
+
+            SqlParameter resultCodeParam = new SqlParameter("@ResultCode", SqlDbType.SmallInt)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(resultCodeParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (resultCodeParam.Value != DBNull.Value)
+                {
+                    ResultCode = (short)resultCodeParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return 7; }
+            finally
+            { connection.Close(); }
+
+            return ResultCode;
+
+        }
 
 
     }

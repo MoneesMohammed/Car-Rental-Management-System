@@ -14,6 +14,20 @@ namespace CarRentalAPIBusinessLayer
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+            PlateNumberAlreadyUsed,
+            VINAlreadyUsed,
+            FuelTypeNotFound,
+            CarCategoryNotFound,
+            CurrentBranchNotFound,
+            CurrentBranchInactive,
+
+            DatabaseError
+        }
+
+
         public int CarID { get; set; }
         public string Make { get; set; }
         public string Model { get; set; }
@@ -85,28 +99,47 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+            short RCode = 7;
+
             switch (Mode)
             {
                 case enMode.AddNew:
 
+                    RCode = ValidateCarData(this.CDTO);
+
+                    if (RCode != -1)
+                    {
+                        return (enSaveResult)RCode;
+                    }
+
                     if (_AddNewCar())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
                 case enMode.Update:
 
-                    return (_UpdateCar());
+                    RCode = ValidateCarDataForUpdate(this.CDTO);
+
+                    if (RCode != -1)
+                    {
+                        return (enSaveResult)RCode;
+                    }
+
+                    if (_UpdateCar())
+                        return enSaveResult.Success;
+                    else
+                        return enSaveResult.DatabaseError;
 
             }
 
-            return false;
+            return enSaveResult.DatabaseError;
         }
 
 
@@ -126,6 +159,15 @@ namespace CarRentalAPIBusinessLayer
             return clsCarData.CheckCarAvailability(CarID,ref message);
         }
 
+        public static short ValidateCarData(CarDTO CDTO)
+        { 
+            return clsCarData.ValidateCarData(CDTO);
+        }
+
+        public static short ValidateCarDataForUpdate(CarDTO CDTO)
+        {
+            return clsCarData.ValidateCarDataForUpdate(CDTO);
+        }
 
     }
 

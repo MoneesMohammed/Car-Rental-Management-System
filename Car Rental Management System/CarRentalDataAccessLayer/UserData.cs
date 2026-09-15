@@ -106,11 +106,9 @@ namespace CarRentalDataAccessLayer
             command.CommandType = CommandType.StoredProcedure;
 
             command.Parameters.AddWithValue("@UserID", UDTO.UserID);
-            command.Parameters.AddWithValue("@EmployeeID", UDTO.EmployeeID);
             command.Parameters.AddWithValue("@RoleID", UDTO.RoleID);
             command.Parameters.AddWithValue("@UserName", UDTO.UserName);
             command.Parameters.AddWithValue("@PasswordHash", UDTO.PasswordHash);
-            command.Parameters.AddWithValue("@IsActive", UDTO.IsActive);
             
             try
             {
@@ -352,6 +350,86 @@ namespace CarRentalDataAccessLayer
 
             return null;
         }
+
+
+        public static bool IsUserNameUnique(string UserName)
+        {
+            bool IsUnique = false;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_CheckUserNameUnique";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@UserName", UserName);
+
+
+            SqlParameter isUniqueParam = new SqlParameter("@IsUnique", SqlDbType.Bit)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(isUniqueParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (isUniqueParam.Value != DBNull.Value)
+                {
+                    IsUnique = (bool)isUniqueParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return false; }
+            finally
+            { connection.Close(); }
+
+            return IsUnique;
+        }
+
+
+        public static bool IsEmployeeIDUnique(int EmployeeID)
+        {
+            bool IsUnique = false;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_CheckEmployeeIDUnique";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@EmployeeID", EmployeeID);
+
+
+            SqlParameter isUniqueParam = new SqlParameter("@IsUnique", SqlDbType.Bit)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(isUniqueParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (isUniqueParam.Value != DBNull.Value)
+                {
+                    IsUnique = (bool)isUniqueParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return false; }
+            finally
+            { connection.Close(); }
+
+            return IsUnique;
+        }
+
+
 
     }
 

@@ -106,7 +106,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@Address", BDTO.Address);
             command.Parameters.AddWithValue("@City", BDTO.City);
             command.Parameters.AddWithValue("@Phone", BDTO.Phone);
-            command.Parameters.AddWithValue("@IsActive", BDTO.IsActive);
+            
 
             try
             {

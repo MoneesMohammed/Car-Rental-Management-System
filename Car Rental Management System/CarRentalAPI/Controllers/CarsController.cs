@@ -1,6 +1,7 @@
 ﻿using CarRentalAPIBusinessLayer;
 using CarRentalDTOs;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarRentalAPI.Controllers
@@ -65,14 +66,38 @@ namespace CarRentalAPI.Controllers
 
             var Car = new clsCar(NewCarDTO);
 
-            if (!Car.Save())
+            var result = Car.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding Car." });
+                case clsCar.enSaveResult.Success:
+
+                    NewCarDTO.CarID = Car.CarID;
+                    return CreatedAtRoute("GetCarByID", new { ID = NewCarDTO.CarID }, NewCarDTO);
+
+                case clsCar.enSaveResult.PlateNumberAlreadyUsed:
+                    return BadRequest("Plate Number Already Used.");
+
+                case clsCar.enSaveResult.VINAlreadyUsed:
+                    return BadRequest("VIN Already Used.");
+
+                case clsCar.enSaveResult.FuelTypeNotFound:
+                    return BadRequest("Fuel Type Not Found.");
+
+                case clsCar.enSaveResult.CarCategoryNotFound:
+                    return BadRequest("Car Category Not Found.");
+
+                case clsCar.enSaveResult.CurrentBranchNotFound:
+                    return BadRequest("Current Branch Not Found.");
+
+                case clsCar.enSaveResult.CurrentBranchInactive:
+                    return BadRequest("Current Branch Inactive.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding Car." });
             }
 
-            NewCarDTO.CarID = Car.CarID;
 
-            return CreatedAtRoute("GetCarByID", new { ID = NewCarDTO.CarID }, NewCarDTO);
         }
 
 
@@ -104,17 +129,48 @@ namespace CarRentalAPI.Controllers
             Car.TransmissionType = updatedCar.TransmissionType;
             Car.FuelTypeID = updatedCar.FuelTypeID;
             Car.CarCategoryID = updatedCar.CarCategoryID;
-            Car.CarStatus = updatedCar.CarStatus;
             Car.DailyRentalPrice = updatedCar.DailyRentalPrice;
             Car.CurrentMileage = updatedCar.CurrentMileage;
             Car.CurrentBranchID = updatedCar.CurrentBranchID;
 
-            if (!Car.Save())
+
+            var result = Car.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating Car." });
+                case clsCar.enSaveResult.Success:
+
+                    return Ok(Car.CDTO);
+
+                case clsCar.enSaveResult.PlateNumberAlreadyUsed:
+                    return BadRequest("Plate Number Already Used.");
+
+                case clsCar.enSaveResult.VINAlreadyUsed:
+                    return BadRequest("VIN Already Used.");
+
+                case clsCar.enSaveResult.FuelTypeNotFound:
+                    return BadRequest("Fuel Type Not Found.");
+
+                case clsCar.enSaveResult.CarCategoryNotFound:
+                    return BadRequest("Car Category Not Found.");
+
+                case clsCar.enSaveResult.CurrentBranchNotFound:
+                    return BadRequest("Current Branch Not Found.");
+
+                case clsCar.enSaveResult.CurrentBranchInactive:
+                    return BadRequest("Current Branch Inactive.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Updating Car." });
             }
 
-            return Ok(Car.CDTO);
+
+
+
+
+
+
+
         }
 
 

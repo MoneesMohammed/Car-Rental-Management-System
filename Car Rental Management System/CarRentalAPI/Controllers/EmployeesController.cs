@@ -152,7 +152,7 @@ namespace CarRentalAPI.Controllers
                     return BadRequest("Email already used.");
 
                 default:
-                    return StatusCode(500, "Error adding employee.");
+                    return StatusCode(500, "Error : Updating employee.");
             }
 
             

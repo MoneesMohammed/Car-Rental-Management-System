@@ -87,17 +87,16 @@ namespace CarRentalAPI.Controllers
 
             var Branche = clsBranch.Find(ID);
 
-            if (Branche == null)
+            if (Branche == null )
             {
                 return NotFound($"Branch with ID {ID} not found.");
             }
-
+            
             Branche.BranchName = updatedBranch.BranchName;
             Branche.Address = updatedBranch.Address;
             Branche.City = updatedBranch.City;
             Branche.Phone = updatedBranch.Phone;
-            Branche.IsActive = updatedBranch.IsActive;
-
+            
             if (!Branche.Save())
             {
                 return StatusCode(500, new { Message = "Error : Updating Branch." });
@@ -125,7 +124,7 @@ namespace CarRentalAPI.Controllers
             }
             else
             {
-                return NotFound($"Branch with ID {ID} not found. no rows deleted!");
+                return NotFound($"Branch with ID {ID} not found.Or no rows deleted!");
             }
 
         }

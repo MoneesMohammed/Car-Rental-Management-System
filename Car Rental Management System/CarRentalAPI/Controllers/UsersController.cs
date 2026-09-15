@@ -65,15 +65,38 @@ namespace CarRentalAPI.Controllers
 
             var User = new clsUser(NewUserDTO);
 
-            if (!User.Save())
+            var result = User.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding User." });
+                case clsUser.enSaveResult.Success:
+
+                    NewUserDTO.UserID = User.UserID;
+                    NewUserDTO.CreateDate = DateTime.Now;       
+                    NewUserDTO.RoleName = clsRole.Find(NewUserDTO.RoleID)!.RoleName ;
+
+                    return CreatedAtRoute("GetUserByID", new { ID = NewUserDTO.UserID }, NewUserDTO);
+
+                case clsUser.enSaveResult.RoleNotFound:
+                    return BadRequest("Role not found.");
+
+                case clsUser.enSaveResult.EmployeeNotFound:
+                    return BadRequest("Employee not found.");
+
+                case clsUser.enSaveResult.EmployeeInactive:
+                    return BadRequest("Employee is inactive.");
+
+                case clsUser.enSaveResult.EmployeeAlreadyExists:
+                    return BadRequest("Employee Already Exists.");
+
+                case clsUser.enSaveResult.UserNameAlreadyUsed:
+                    return BadRequest("UserName already used.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding User." });
             }
 
-            NewUserDTO.UserID = User.UserID;
-            NewUserDTO.CreateDate = DateTime.Now;
 
-            return CreatedAtRoute("GetUserByID", new { ID = NewUserDTO.UserID }, NewUserDTO);
         }
 
 
@@ -95,19 +118,39 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"User with ID {ID} not found.");
             }
 
-            User.EmployeeID = updatedUser.EmployeeID;
+            
             User.RoleID = updatedUser.RoleID;
             User.UserName = updatedUser.UserName;
             User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updatedUser.PasswordHash);
-            User.IsActive = updatedUser.IsActive;
             
+            var result = User.Save();
 
-            if (!User.Save())
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating User." });
+                case clsUser.enSaveResult.Success:
+
+                    User.RoleName = clsRole.Find(updatedUser.RoleID)!.RoleName;
+                    return Ok(User.UDTO);
+
+                case clsUser.enSaveResult.RoleNotFound:
+                    return BadRequest("Role not found.");
+
+                case clsUser.enSaveResult.EmployeeNotFound:
+                    return BadRequest("Employee not found.");
+
+                case clsUser.enSaveResult.EmployeeInactive:
+                    return BadRequest("Employee is inactive.");
+
+                case clsUser.enSaveResult.EmployeeAlreadyExists:
+                    return BadRequest("Employee Already Exists.");
+
+                case clsUser.enSaveResult.UserNameAlreadyUsed:
+                    return BadRequest("UserName already used.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Updating User." });
             }
 
-            return Ok(User.UDTO);
         }
 
 

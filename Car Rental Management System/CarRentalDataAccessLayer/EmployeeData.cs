@@ -142,7 +142,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@JobTitleID", EDTO.JobTitleID);
             command.Parameters.AddWithValue("@WorkingBranchID", EDTO.WorkingBranchID);
             command.Parameters.AddWithValue("@HireDate", EDTO.HireDate);
-            command.Parameters.AddWithValue("@IsActive", EDTO.IsActive);
+            
 
             command.Parameters.AddWithValue("@FirstName", EDTO.PDTO.FirstName);
             command.Parameters.AddWithValue("@SecondName", EDTO.PDTO.SecondName);

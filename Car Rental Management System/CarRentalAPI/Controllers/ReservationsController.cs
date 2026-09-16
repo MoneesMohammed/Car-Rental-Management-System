@@ -63,24 +63,62 @@ namespace CarRentalAPI.Controllers
                 return BadRequest("Invalid Reservation Data.");
             }
 
-            string message = "";
+            //string message = "";
 
-            if (!clsCar.CheckCarAvailability(NewReservationDTO.CarID,ref message))
-            {
-                return BadRequest(message);
-            }
-
+            //if (!clsCar.CheckCarAvailability(NewReservationDTO.CarID,ref message))
+            //{
+            //    return BadRequest(message);
+            //}
 
             var Reservation = new clsReservation(NewReservationDTO);
 
-            if (!Reservation.Save())
+            var result = Reservation.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding Reservation." });
+                case clsReservation.enSaveResult.Success:
+                    NewReservationDTO.ReservationID = Reservation.ReservationID;
+                    NewReservationDTO.PickupBranchID = Reservation.PickupBranchID;
+                    return CreatedAtRoute("GetReservationByID", new { ID = NewReservationDTO.ReservationID }, NewReservationDTO);
+
+                case clsReservation.enSaveResult.CustomerNotFound:
+                    return BadRequest("Customer Not Found.");
+
+                case clsReservation.enSaveResult.CustomerInactive:
+                    return BadRequest("Customer Inactive.");
+
+                case clsReservation.enSaveResult.CarNotFound:
+                    return BadRequest("Car Not Found.");
+
+                case clsReservation.enSaveResult.CarNotAvailable:
+                    return BadRequest("Car Not Available.");
+
+                case clsReservation.enSaveResult.PickupBranchNotFound:
+                    return BadRequest("Pickup Branch Not Found.");
+
+                case clsReservation.enSaveResult.ReturnBranchNotFound:
+                    return BadRequest("Return Branch Not Found.");
+
+                case clsReservation.enSaveResult.PickupBranchInactive:
+                    return BadRequest("Pickup Branch Inactive.");
+
+                case clsReservation.enSaveResult.ReturnBranchInactive:
+                    return BadRequest("Return Branch Inactive.");
+
+                case clsReservation.enSaveResult.PickupAndReturnDateTimeInvalid:
+                    return BadRequest("Pickup And Return DateTime Invalid.");
+
+                case clsReservation.enSaveResult.PickupDateTimeInvalid:
+                    return BadRequest("Pickup DateTime Invalid.");
+
+                case clsReservation.enSaveResult.CarReserved:
+                    return BadRequest("Car Reserved.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding Reservation." });
             }
 
-            NewReservationDTO.ReservationID = Reservation.ReservationID;
 
-            return CreatedAtRoute("GetReservationByID", new { ID = NewReservationDTO.ReservationID }, NewReservationDTO);
         }
 
 
@@ -109,14 +147,51 @@ namespace CarRentalAPI.Controllers
             Reservation.PickupDateTime = updatedReservation.PickupDateTime;
             Reservation.ExpectedReturnDateTime = updatedReservation.ExpectedReturnDateTime;
             Reservation.AgreedPrice = updatedReservation.AgreedPrice;
-            Reservation.BookingStatus = updatedReservation.BookingStatus;
 
-            if (!Reservation.Save())
+            var result = Reservation.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating Reservation." });
+                case clsReservation.enSaveResult.Success:
+                    return Ok(Reservation.RDTO);
+
+                case clsReservation.enSaveResult.CustomerNotFound:
+                    return BadRequest("Customer Not Found.");
+
+                case clsReservation.enSaveResult.CustomerInactive:
+                    return BadRequest("Customer Inactive.");
+
+                case clsReservation.enSaveResult.CarNotFound:
+                    return BadRequest("Car Not Found.");
+
+                case clsReservation.enSaveResult.CarNotAvailable:
+                    return BadRequest("Car Not Available.");
+
+                case clsReservation.enSaveResult.PickupBranchNotFound:
+                    return BadRequest("Pickup Branch Not Found.");
+
+                case clsReservation.enSaveResult.ReturnBranchNotFound:
+                    return BadRequest("Return Branch Not Found.");
+
+                case clsReservation.enSaveResult.PickupBranchInactive:
+                    return BadRequest("Pickup Branch Inactive.");
+
+                case clsReservation.enSaveResult.ReturnBranchInactive:
+                    return BadRequest("Return Branch Inactive.");
+
+                case clsReservation.enSaveResult.PickupAndReturnDateTimeInvalid:
+                    return BadRequest("Pickup And Return DateTime Invalid.");
+
+                case clsReservation.enSaveResult.PickupDateTimeInvalid:
+                    return BadRequest("Pickup DateTime Invalid.");
+
+                case clsReservation.enSaveResult.CarReserved:
+                    return BadRequest("Car Reserved.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Updating Reservation." });
             }
 
-            return Ok(Reservation.RDTO);
         }
 
 

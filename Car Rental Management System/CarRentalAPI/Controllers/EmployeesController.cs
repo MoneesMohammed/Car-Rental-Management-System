@@ -116,7 +116,7 @@ namespace CarRentalAPI.Controllers
             Employee.JobTitleID      = updatedEmployee.JobTitleID;
             Employee.WorkingBranchID = updatedEmployee.WorkingBranchID;
             Employee.HireDate        = updatedEmployee.HireDate;
-            Employee.IsActive        = updatedEmployee.IsActive;
+            
 
             Employee.FirstName   = updatedEmployee.PDTO.FirstName;
             Employee.SecondName  = updatedEmployee.PDTO.SecondName;

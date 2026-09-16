@@ -115,8 +115,8 @@ namespace CarRentalAPI.Controllers
             
             Customer.DrivingLicenseNo = updatedCustomer.DrivingLicenseNo;
             Customer.DrivingLicenseExpiryDate = updatedCustomer.DrivingLicenseExpiryDate;
-            Customer.IsActive = updatedCustomer.IsActive;
-
+            
+            
 
             Customer.FirstName   = updatedCustomer.PDTO.FirstName;
             Customer.SecondName  = updatedCustomer.PDTO.SecondName;

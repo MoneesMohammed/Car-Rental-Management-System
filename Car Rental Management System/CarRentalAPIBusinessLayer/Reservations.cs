@@ -11,11 +11,35 @@ namespace CarRentalAPIBusinessLayer
 {
     public class clsReservation
     {
-
-
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+
+            CustomerNotFound,
+            CustomerInactive,
+
+            CarNotFound,
+            CarNotAvailable,
+
+            PickupBranchNotFound,
+            ReturnBranchNotFound,
+
+            PickupBranchInactive,
+            ReturnBranchInactive,
+
+            PickupAndReturnDateTimeInvalid,
+
+            PickupDateTimeInvalid,
+
+
+            CarReserved, //Unacceptable
+
+
+            DatabaseError
+        }
 
 
 
@@ -78,8 +102,15 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+           short RCode = ValidateReservationData(this.RDTO);
+
+            if (RCode != -1)
+            {
+                return (enSaveResult)RCode;
+            }
+
             switch (Mode)
             {
                 case enMode.AddNew:
@@ -87,19 +118,21 @@ namespace CarRentalAPIBusinessLayer
                     if (_AddNewReservation())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
                 case enMode.Update:
-
-                    return (_UpdateReservation());
+                    if (_UpdateReservation())
+                        return enSaveResult.Success;
+                    else
+                        return enSaveResult.DatabaseError;
 
             }
 
-            return false;
+            return enSaveResult.DatabaseError;
         }
 
 
@@ -113,6 +146,12 @@ namespace CarRentalAPIBusinessLayer
         {
             return clsReservationData.GetAllReservations();
         }
+
+        public short ValidateReservationData(ReservationDTO RDTO)
+        {
+            return clsReservationData.ValidateReservationData(RDTO, (byte)Mode);
+        }
+
 
 
     }

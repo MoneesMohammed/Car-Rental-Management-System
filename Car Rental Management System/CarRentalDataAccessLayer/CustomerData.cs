@@ -147,7 +147,7 @@ namespace CarRentalDataAccessLayer
             
             command.Parameters.AddWithValue("@DrivingLicenseNo", CDTO.DrivingLicenseNo);
             command.Parameters.AddWithValue("@DrivingLicenseExpiryDate", CDTO.DrivingLicenseExpiryDate);
-            command.Parameters.AddWithValue("@IsActive", CDTO.IsActive);
+            
             
             command.Parameters.AddWithValue("@FirstName", CDTO.PDTO.FirstName);
             command.Parameters.AddWithValue("@SecondName", CDTO.PDTO.SecondName);

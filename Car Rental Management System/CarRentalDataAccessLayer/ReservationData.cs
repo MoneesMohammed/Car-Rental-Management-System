@@ -69,7 +69,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@PickupDateTime", RDTO.PickupDateTime);
             command.Parameters.AddWithValue("@ExpectedReturnDateTime", RDTO.ExpectedReturnDateTime);
             command.Parameters.AddWithValue("@AgreedPrice", RDTO.AgreedPrice);
-            command.Parameters.AddWithValue("@BookingStatus", (byte)RDTO.BookingStatus);
+            
 
             SqlParameter outputParameter = new SqlParameter("@NewReservationID", SqlDbType.Int)
             {
@@ -115,7 +115,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@PickupDateTime", RDTO.PickupDateTime);
             command.Parameters.AddWithValue("@ExpectedReturnDateTime", RDTO.ExpectedReturnDateTime);
             command.Parameters.AddWithValue("@AgreedPrice", RDTO.AgreedPrice);
-            command.Parameters.AddWithValue("@BookingStatus", (byte)RDTO.BookingStatus);
+           
 
             try
             {
@@ -209,6 +209,52 @@ namespace CarRentalDataAccessLayer
             return ReservationList;
         }
 
+
+        public static short ValidateReservationData(ReservationDTO RDTO , byte Mode)
+        {
+            short ResultCode = 12;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "usp_ValidateReservationData";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@ReservationID", RDTO.ReservationID );
+            command.Parameters.AddWithValue("@CustomerID", RDTO.CustomerID );
+            command.Parameters.AddWithValue("@CarID", RDTO.CarID );
+            command.Parameters.AddWithValue("@PickupBranchID", RDTO.PickupBranchID );
+            command.Parameters.AddWithValue("@ReturnsBranchID", RDTO.ReturnsBranchID);
+            command.Parameters.AddWithValue("@PickupDateTime", RDTO.PickupDateTime);
+            command.Parameters.AddWithValue("@ExpectedReturnDateTime", RDTO.ExpectedReturnDateTime);
+            command.Parameters.AddWithValue("@Mode", Mode);
+
+
+            SqlParameter resultCodeParam = new SqlParameter("@ResultCode", SqlDbType.SmallInt)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(resultCodeParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (resultCodeParam.Value != DBNull.Value)
+                {
+                    ResultCode = (short)resultCodeParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return 12; }
+            finally
+            { connection.Close(); }
+
+            return ResultCode;
+
+        }
 
     }
 }

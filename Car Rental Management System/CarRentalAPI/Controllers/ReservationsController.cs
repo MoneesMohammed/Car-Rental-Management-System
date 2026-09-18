@@ -77,8 +77,9 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsReservation.enSaveResult.Success:
-                    NewReservationDTO.ReservationID = Reservation.ReservationID;
-                    NewReservationDTO.PickupBranchID = Reservation.PickupBranchID;
+                    NewReservationDTO.ReservationID  = Reservation.ReservationID;
+                    //NewReservationDTO.PickupBranchID = Reservation.PickupBranchID;
+                    NewReservationDTO.AgreedPrice    = clsReservation.GetAgreedPrice(Reservation.ReservationID);
                     return CreatedAtRoute("GetReservationByID", new { ID = NewReservationDTO.ReservationID }, NewReservationDTO);
 
                 case clsReservation.enSaveResult.CustomerNotFound:
@@ -146,13 +147,14 @@ namespace CarRentalAPI.Controllers
             Reservation.ReturnsBranchID = updatedReservation.ReturnsBranchID;
             Reservation.PickupDateTime = updatedReservation.PickupDateTime;
             Reservation.ExpectedReturnDateTime = updatedReservation.ExpectedReturnDateTime;
-            Reservation.AgreedPrice = updatedReservation.AgreedPrice;
+           //Reservation.AgreedPrice = updatedReservation.AgreedPrice;
 
             var result = Reservation.Save();
 
             switch (result)
             {
                 case clsReservation.enSaveResult.Success:
+                    Reservation.AgreedPrice = clsReservation.GetAgreedPrice(ID);
                     return Ok(Reservation.RDTO);
 
                 case clsReservation.enSaveResult.CustomerNotFound:

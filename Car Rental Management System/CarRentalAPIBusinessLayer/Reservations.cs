@@ -152,7 +152,10 @@ namespace CarRentalAPIBusinessLayer
             return clsReservationData.ValidateReservationData(RDTO, (byte)Mode);
         }
 
-
+        public static decimal GetAgreedPrice(int ReservationID)
+        {
+            return clsReservationData.GetAgreedPrice(ReservationID);
+        }
 
     }
 

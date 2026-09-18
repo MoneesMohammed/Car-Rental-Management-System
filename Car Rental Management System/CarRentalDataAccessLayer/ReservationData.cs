@@ -256,5 +256,33 @@ namespace CarRentalDataAccessLayer
 
         }
 
+        public static decimal GetAgreedPrice(int ReservationID)
+        {
+            decimal AgreedPrice = 0;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SELECT AgreedPrice FROM Reservations WHERE ReservationID = @ReservationID";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            
+            command.Parameters.AddWithValue("@ReservationID", ReservationID);
+
+            try
+            {
+                connection.Open();
+                object result = command.ExecuteScalar();
+
+                if (result != null && decimal.TryParse(result.ToString(), out decimal agreedPrice))
+                {
+                    AgreedPrice = agreedPrice;
+                }
+            }
+            catch//(Exception ex)
+            { return 0; }
+            finally
+            { connection.Close(); }
+
+            return (AgreedPrice);
+        }
     }
 }

@@ -67,17 +67,11 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@ContractNumber", RCDTO.ContractNumber);
             command.Parameters.AddWithValue("@ReservationID", RCDTO.ReservationID);
             command.Parameters.AddWithValue("@ActualPickupDateTime", RCDTO.ActualPickupDateTime);
-            
             command.Parameters.AddWithValue("@OdometerAtPickup", RCDTO.OdometerAtPickup);
-           
             command.Parameters.AddWithValue("@FuelLevelUponReceipt", RCDTO.FuelLevelUponReceipt);
-            
-            command.Parameters.AddWithValue("@BasicPrice", RCDTO.BasicPrice);
             command.Parameters.AddWithValue("@DiscountAmount", RCDTO.DiscountAmount);
             command.Parameters.AddWithValue("@AdditionalFeesAmount", RCDTO.AdditionalFeesAmount);
-            command.Parameters.AddWithValue("@TotalAmount", RCDTO.TotalAmount);
-
-
+           
 
             SqlParameter outputParameter = new SqlParameter("@NewRentalContractID", SqlDbType.Int)
             {
@@ -117,16 +111,14 @@ namespace CarRentalDataAccessLayer
 
             command.Parameters.AddWithValue("@RentalContractID", RCDTO.RentalContractID);
             command.Parameters.AddWithValue("@ContractNumber", RCDTO.ContractNumber);
-            command.Parameters.AddWithValue("@ReservationID", RCDTO.ReservationID);
+            
             command.Parameters.AddWithValue("@ActualPickupDateTime", RCDTO.ActualPickupDateTime);
             command.Parameters.AddWithValue("@OdometerAtPickup", RCDTO.OdometerAtPickup);
             command.Parameters.AddWithValue("@FuelLevelUponReceipt", RCDTO.FuelLevelUponReceipt);
-            command.Parameters.AddWithValue("@BasicPrice", RCDTO.BasicPrice);
+            
             command.Parameters.AddWithValue("@DiscountAmount", RCDTO.DiscountAmount);
             command.Parameters.AddWithValue("@AdditionalFeesAmount", RCDTO.AdditionalFeesAmount);
-            command.Parameters.AddWithValue("@TotalAmount", RCDTO.TotalAmount);
-            command.Parameters.AddWithValue("@ContractStatus", (byte)RCDTO.ContractStatus);
-
+          
             if (RCDTO.ActualReturnDateTime != null)
                 command.Parameters.AddWithValue("@ActualReturnDateTime", RCDTO.ActualReturnDateTime);
             else
@@ -242,5 +234,56 @@ namespace CarRentalDataAccessLayer
 
             return RentalContractList;
         }
+
+
+
+        public static short ValidateRentalContractData(RentalContractDTO RCDTO, byte Mode)
+        {
+            short ResultCode = 11;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "usp_ValidateRentalContractData";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            
+            command.Parameters.AddWithValue("@ReservationID", RCDTO.ReservationID);
+            command.Parameters.AddWithValue("@ContractNumber", RCDTO.ContractNumber);
+            command.Parameters.AddWithValue("@ActualPickupDateTime", RCDTO.ActualPickupDateTime);
+            command.Parameters.AddWithValue("@OdometerAtPickup", RCDTO.OdometerAtPickup);
+            command.Parameters.AddWithValue("@FuelLevelUponReceipt", RCDTO.FuelLevelUponReceipt);
+            command.Parameters.AddWithValue("@DiscountAmount", RCDTO.DiscountAmount);
+            command.Parameters.AddWithValue("@AdditionalFeesAmount", RCDTO.AdditionalFeesAmount);
+
+            command.Parameters.AddWithValue("@Mode", Mode);
+
+            SqlParameter resultCodeParam = new SqlParameter("@ResultCode", SqlDbType.SmallInt)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(resultCodeParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (resultCodeParam.Value != DBNull.Value)
+                {
+                    ResultCode = (short)resultCodeParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return 11; }
+            finally
+            { connection.Close(); }
+
+            return ResultCode;
+
+        }
+
+
     }
 }

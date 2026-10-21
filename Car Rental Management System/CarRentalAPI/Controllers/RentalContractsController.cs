@@ -62,26 +62,66 @@ namespace CarRentalAPI.Controllers
                 return BadRequest("Invalid Rental Contract Data.");
             }
 
-            if (NewRContractDTO.FuelLevelUponReceipt > 100 || NewRContractDTO.FuelLevelUponReceipt < 0 ) 
-            {
-                return BadRequest("Mast be Fuel Level , 0 between 100");
-            }
-
-            if (NewRContractDTO.OdometerAtPickup < 0)
-            {
-                return BadRequest("Mast be Odometer At Pickup , Greater than 0");
-            }
 
             var RentalContract = new clsRentalContract(NewRContractDTO);
 
-            if (!RentalContract.Save())
+            var result = RentalContract.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding Rental Contract." });
+                case clsRentalContract.enSaveResult.Success:
+                    RentalContract = clsRentalContract.Find(RentalContract.RentalContractID);
+                    NewRContractDTO = RentalContract!.RCDTO;
+
+                    return CreatedAtRoute("GetRentalContractByID", new { ID = NewRContractDTO.RentalContractID }, NewRContractDTO);
+
+                case clsRentalContract.enSaveResult.ReservationNotFound:
+                    return BadRequest("Reservation Not Found.");
+
+                case clsRentalContract.enSaveResult.ReservationStatusInvalid:
+                    return BadRequest("Reservation Status Invalid.");
+
+                case clsRentalContract.enSaveResult.ReservationAlreadyUsed:
+                    return BadRequest("Reservation Already Used.");
+
+                case clsRentalContract.enSaveResult.CarNotAvailable:
+                    return BadRequest("Car Not Available.");
+
+                case clsRentalContract.enSaveResult.ActualPickupDateTimeInvalid:
+                    return BadRequest("Actual Pickup DateTime Invalid.");
+
+                case clsRentalContract.enSaveResult.OdometerAtPickupInvalid:
+                    return BadRequest("Odometer At Pickup Invalid.");
+
+                case clsRentalContract.enSaveResult.FuelLevelUponReceiptInvalid:
+                    return BadRequest("Fuel Level Upon Receipt Invalid. (Mast be, 0 between 100)");
+
+                case clsRentalContract.enSaveResult.DiscountAmountInvalid:
+                    return BadRequest("Discount Amount Invalid.");
+
+                case clsRentalContract.enSaveResult.AdditionalFeesAmountInvalid:
+                    return BadRequest("Additional Fees Amount Invalid.");
+
+                case clsRentalContract.enSaveResult.ContractNumberAlreadyUsed:
+                    return BadRequest("Contract Number Already Used.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding Rental Contract." });
             }
 
-            NewRContractDTO.RentalContractID = RentalContract.RentalContractID;
 
-            return CreatedAtRoute("GetRentalContractByID", new { ID = NewRContractDTO.RentalContractID }, NewRContractDTO);
+
+
+
+
+
+
+
+
+
+
+
+
         }
 
 
@@ -104,25 +144,73 @@ namespace CarRentalAPI.Controllers
             }
 
             RentalContract.ContractNumber = updatedRentalContract.ContractNumber;
-            RentalContract.ReservationID = updatedRentalContract.ReservationID;
+            
             RentalContract.ActualPickupDateTime = updatedRentalContract.ActualPickupDateTime;
             RentalContract.ActualReturnDateTime = updatedRentalContract.ActualReturnDateTime;
             RentalContract.OdometerAtPickup = updatedRentalContract.OdometerAtPickup;
             RentalContract.OdometerAtReturn = updatedRentalContract.OdometerAtReturn;
             RentalContract.FuelLevelUponReceipt = updatedRentalContract.FuelLevelUponReceipt;
             RentalContract.FuelLevelUponReturn = updatedRentalContract.FuelLevelUponReturn;
-            RentalContract.BasicPrice = updatedRentalContract.BasicPrice;
+            
             RentalContract.DiscountAmount = updatedRentalContract.DiscountAmount;
             RentalContract.AdditionalFeesAmount = updatedRentalContract.AdditionalFeesAmount;
-            RentalContract.TotalAmount = updatedRentalContract.TotalAmount;
-            RentalContract.ContractStatus = updatedRentalContract.ContractStatus;
+            
 
-            if (!RentalContract.Save())
+            var result = RentalContract.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating RentalContract." });
+                case clsRentalContract.enSaveResult.Success:
+                    return Ok(RentalContract.RCDTO);
+
+                case clsRentalContract.enSaveResult.ReservationNotFound:
+                    return BadRequest("Reservation Not Found.");
+
+                case clsRentalContract.enSaveResult.ReservationStatusInvalid:
+                    return BadRequest("Reservation Status Invalid.");
+
+                case clsRentalContract.enSaveResult.ReservationAlreadyUsed:
+                    return BadRequest("Reservation Already Used.");
+
+                case clsRentalContract.enSaveResult.CarNotAvailable:
+                    return BadRequest("Car Not Available.");
+
+                case clsRentalContract.enSaveResult.ActualPickupDateTimeInvalid:
+                    return BadRequest("Actual Pickup DateTime Invalid.");
+
+                case clsRentalContract.enSaveResult.OdometerAtPickupInvalid:
+                    return BadRequest("Odometer At Pickup Invalid.");
+
+                case clsRentalContract.enSaveResult.FuelLevelUponReceiptInvalid:
+                    return BadRequest("Fuel Level Upon Receipt Invalid. (Mast be, 0 between 100)");
+
+                case clsRentalContract.enSaveResult.DiscountAmountInvalid:
+                    return BadRequest("Discount Amount Invalid.");
+
+                case clsRentalContract.enSaveResult.AdditionalFeesAmountInvalid:
+                    return BadRequest("Additional Fees Amount Invalid.");
+
+                case clsRentalContract.enSaveResult.ContractNumberAlreadyUsed:
+                    return BadRequest("Contract Number Already Used.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Updating RentalContract." });
             }
 
-            return Ok(RentalContract.RCDTO);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         }
 
 

@@ -14,6 +14,28 @@ namespace CarRentalAPIBusinessLayer
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+
+            ReservationNotFound,
+            ReservationStatusInvalid,
+            ReservationAlreadyUsed,
+
+            CarNotAvailable,
+
+            ActualPickupDateTimeInvalid,
+            OdometerAtPickupInvalid,
+            FuelLevelUponReceiptInvalid,
+
+            DiscountAmountInvalid,
+            AdditionalFeesAmountInvalid,
+
+            ContractNumberAlreadyUsed,
+
+            DatabaseError
+        }
+
         public int RentalContractID { get; set; }
         public string ContractNumber { get; set; }
         public int ReservationID { get; set; }
@@ -83,8 +105,16 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+            short RCode = ValidateRentalContractData(this.RCDTO);
+
+            if (RCode != -1)
+            {
+                return (enSaveResult)RCode;
+            }
+
+
             switch (Mode)
             {
                 case enMode.AddNew:
@@ -92,19 +122,22 @@ namespace CarRentalAPIBusinessLayer
                     if (_AddNewRentalContract())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
                 case enMode.Update:
 
-                    return (_UpdateRentalContract());
+                    if (_UpdateRentalContract())
+                        return enSaveResult.Success;
+                    else
+                        return enSaveResult.DatabaseError;
 
             }
 
-            return false;
+            return enSaveResult.DatabaseError;
         }
 
 
@@ -117,6 +150,11 @@ namespace CarRentalAPIBusinessLayer
         public static List<RentalContractDTO> GetAllRentalContracts()
         {
             return clsRentalContractData.GetAllRentalContracts();
+        }
+
+        public short ValidateRentalContractData(RentalContractDTO RCDTO)
+        {
+            return clsRentalContractData.ValidateRentalContractData(RCDTO, (byte)Mode);
         }
 
 

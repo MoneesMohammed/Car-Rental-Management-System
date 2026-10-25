@@ -115,7 +115,7 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@PaymentMethod", (byte)PDTO.PaymentMethod);
             
             command.Parameters.AddWithValue("@AmountPaid", PDTO.AmountPaid);
-            command.Parameters.AddWithValue("@PaymentStatus", (byte)PDTO.PaymentStatus);
+            
 
             if (PDTO.PaymentDate != null)
                 command.Parameters.AddWithValue("@PaymentDate", PDTO.PaymentDate);
@@ -217,5 +217,49 @@ namespace CarRentalDataAccessLayer
 
             return PaymentList;
         }
+
+
+        public static short ValidatePaymentData(PaymentDTO PDTO)
+        {
+            short ResultCode = 5;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "usp_ValidatePaymentData";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+
+            command.Parameters.AddWithValue("@RentalContractID", PDTO.RentalContractID);
+            command.Parameters.AddWithValue("@PaymentMethod", (byte)PDTO.PaymentMethod);
+            command.Parameters.AddWithValue("@AmountPaid", PDTO.AmountPaid);
+
+            SqlParameter resultCodeParam = new SqlParameter("@ResultCode", SqlDbType.SmallInt)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(resultCodeParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (resultCodeParam.Value != DBNull.Value)
+                {
+                    ResultCode = (short)resultCodeParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return 5; }
+            finally
+            { connection.Close(); }
+
+            return ResultCode;
+
+        }
+
+
     }
 }

@@ -109,19 +109,6 @@ namespace CarRentalAPI.Controllers
                     return StatusCode(500, new { Message = "Error : Adding Rental Contract." });
             }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
 
 
@@ -198,19 +185,6 @@ namespace CarRentalAPI.Controllers
             }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
         }
 
 
@@ -235,6 +209,28 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Rental Contract with ID {ID} not found. no rows deleted!");
             }
 
+        }
+
+
+        [HttpGet("{ID}/PaymentSummary", Name = "GetPaymentSummaryByID")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<PaymentSummaryDTO> GetPaymentSummaryByID(int ID)
+        {
+            if (ID < 1)
+            {
+                return BadRequest($"Not Accepted ID: {ID}");
+            }
+
+            var PSDTO = clsRentalContract.GetPaymentSummaryByID(ID);
+
+            if (PSDTO == null)
+            {
+                return NotFound($"Rental Contract with ID: {ID} not found.");
+            }
+
+            return Ok(PSDTO);
         }
 
 

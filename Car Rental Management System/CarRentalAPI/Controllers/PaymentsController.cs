@@ -64,14 +64,32 @@ namespace CarRentalAPI.Controllers
 
             var Payment = new clsPayment(NewPaymentDTO);
 
-            if (!Payment.Save())
+
+            var result = Payment.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding Payment." });
+                case clsPayment.enSaveResult.Success:
+                    NewPaymentDTO.PaymentID = Payment.PaymentID;
+                    return CreatedAtRoute("GetPaymentByID", new { ID = NewPaymentDTO.PaymentID }, NewPaymentDTO);
+
+                case clsPayment.enSaveResult.RentalContractNotFound:
+                    return BadRequest("Rental Contract Not Found.");
+
+                case clsPayment.enSaveResult.RentalContractStatusInvalid:
+                    return BadRequest("Rental Contract Status Invalid.");
+
+                case clsPayment.enSaveResult.AmountPaidInvalid:
+                    return BadRequest("Amount Paid Invalid.");
+
+                case clsPayment.enSaveResult.PaymentMethodInvalid:
+                    return BadRequest("Payment Method Invalid.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding Payment." });
             }
 
-            NewPaymentDTO.PaymentID = Payment.PaymentID;
 
-            return CreatedAtRoute("GetPaymentByID", new { ID = NewPaymentDTO.PaymentID }, NewPaymentDTO);
         }
 
 
@@ -97,17 +115,36 @@ namespace CarRentalAPI.Controllers
             Payment.PaymentMethod = updatedPayment.PaymentMethod;
             Payment.PaymentDate = updatedPayment.PaymentDate;
             Payment.AmountPaid = updatedPayment.AmountPaid;
-            Payment.PaymentStatus = updatedPayment.PaymentStatus;
+
             Payment.TransactionReference = updatedPayment.TransactionReference;
 
-            if (!Payment.Save())
+
+            var result = Payment.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating Payment." });
+                case clsPayment.enSaveResult.Success:
+                    return Ok(Payment.PDTO);
+
+                case clsPayment.enSaveResult.RentalContractNotFound:
+                    return BadRequest("Rental Contract Not Found.");
+
+                case clsPayment.enSaveResult.RentalContractStatusInvalid:
+                    return BadRequest("Rental Contract Status Invalid.");
+
+                case clsPayment.enSaveResult.AmountPaidInvalid:
+                    return BadRequest("Amount Paid Invalid.");
+
+                case clsPayment.enSaveResult.PaymentMethodInvalid:
+                    return BadRequest("Payment Method Invalid.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Updating Payment." });
+
+
             }
 
-            return Ok(Payment.PDTO);
         }
-
 
         //[HttpDelete("{ID}", Name = "DeletePayment")]
         //[ProducesResponseType(StatusCodes.Status200OK)]
@@ -131,7 +168,6 @@ namespace CarRentalAPI.Controllers
         //    }
 
         //}
-
 
     }
 

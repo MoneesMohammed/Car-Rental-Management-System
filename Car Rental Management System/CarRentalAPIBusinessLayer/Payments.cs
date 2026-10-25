@@ -14,6 +14,20 @@ namespace CarRentalAPIBusinessLayer
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+
+            RentalContractNotFound,
+            RentalContractStatusInvalid,
+
+            AmountPaidInvalid,
+            PaymentMethodInvalid,
+            
+            DatabaseError
+        }
+
+
         public int PaymentID { get; set; }
         public int RentalContractID { get; set; }
         public enPaymentMethod PaymentMethod { get; set; }
@@ -67,8 +81,15 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+            short RCode = ValidatePaymentData(this.PDTO);
+
+            if (RCode != -1)
+            {
+                return (enSaveResult)RCode;
+            }
+
             switch (Mode)
             {
                 case enMode.AddNew:
@@ -76,19 +97,22 @@ namespace CarRentalAPIBusinessLayer
                     if (_AddNewPayment())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
                 case enMode.Update:
 
-                    return (_UpdatePayment());
+                    if (_UpdatePayment())
+                        return enSaveResult.Success;
+                    else
+                        return enSaveResult.DatabaseError;
 
             }
 
-            return false;
+            return enSaveResult.DatabaseError;
         }
 
 
@@ -103,6 +127,10 @@ namespace CarRentalAPIBusinessLayer
             return clsPaymentData.GetAllPayments();
         }
 
+        public short ValidatePaymentData(PaymentDTO PDTO)
+        {
+            return clsPaymentData.ValidatePaymentData(PDTO);
+        }
 
     }
 

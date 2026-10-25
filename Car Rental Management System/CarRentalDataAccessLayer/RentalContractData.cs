@@ -6,6 +6,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static CarRentalDTOs.PaymentDTO;
 using static CarRentalDTOs.RentalContractDTO;
 
 namespace CarRentalDataAccessLayer
@@ -282,6 +283,41 @@ namespace CarRentalDataAccessLayer
 
             return ResultCode;
 
+        }
+
+        public static PaymentSummaryDTO? GetPaymentSummaryByID(int RentalContractID)
+        {
+
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_GetPaymentSummaryByID";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@RentalContractID", RentalContractID);
+
+            try
+            {
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    return new PaymentSummaryDTO(RentalContractID, (decimal)reader["TotalAmount"], (decimal)reader["PaidAmount"],(decimal)reader["RemainingBalance"], (string)reader["PaymentStatus"]);
+                }
+
+                reader.Close();
+            }
+            catch//(Exception ex)
+            {
+                return null;
+            }
+            finally
+            {
+                connection.Close();
+            }
+
+            return null;
         }
 
 

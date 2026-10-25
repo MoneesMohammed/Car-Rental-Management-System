@@ -157,6 +157,17 @@ namespace CarRentalAPIBusinessLayer
             return clsRentalContractData.ValidateRentalContractData(RCDTO, (byte)Mode);
         }
 
+        public static PaymentSummaryDTO? GetPaymentSummaryByID(int RentalContractID)
+        {
+            PaymentSummaryDTO? PSDTO = clsRentalContractData.GetPaymentSummaryByID(RentalContractID);
+
+            if (PSDTO != null)
+            {
+                return PSDTO;
+            }
+            else
+                return null;
+        }
 
     }
 

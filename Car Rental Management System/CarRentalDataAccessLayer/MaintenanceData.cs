@@ -62,12 +62,10 @@ namespace CarRentalDataAccessLayer
 
             command.Parameters.AddWithValue("@CarID", MDTO.CarID);
             command.Parameters.AddWithValue("@StartDate", MDTO.StartDate);
-            
             command.Parameters.AddWithValue("@MaintenanceType", (byte)MDTO.MaintenanceType);
             command.Parameters.AddWithValue("@ProblemDescription", MDTO.ProblemDescription);
             command.Parameters.AddWithValue("@Cost", MDTO.Cost);
-            command.Parameters.AddWithValue("@MaintenanceStatus", (byte)MDTO.MaintenanceStatus);
-
+            
             SqlParameter outputParameter = new SqlParameter("@NewMaintenanceID", SqlDbType.Int)
             {
                 Direction = ParameterDirection.Output
@@ -104,19 +102,10 @@ namespace CarRentalDataAccessLayer
             SqlCommand command = new SqlCommand(query, connection);
             command.CommandType = CommandType.StoredProcedure;
 
-            command.Parameters.AddWithValue("@MaintenanceID", MDTO.MaintenanceID);
-            command.Parameters.AddWithValue("@CarID", MDTO.CarID);
-            command.Parameters.AddWithValue("@StartDate", MDTO.StartDate);
-            
+            command.Parameters.AddWithValue("@MaintenanceID", MDTO.MaintenanceID); 
             command.Parameters.AddWithValue("@MaintenanceType", (byte)MDTO.MaintenanceType);
             command.Parameters.AddWithValue("@ProblemDescription", MDTO.ProblemDescription);
             command.Parameters.AddWithValue("@Cost", MDTO.Cost);
-            command.Parameters.AddWithValue("@MaintenanceStatus", (byte)MDTO.MaintenanceStatus);
-
-            if(MDTO.EndDate != null)
-                command.Parameters.AddWithValue("@EndDate", MDTO.EndDate);
-            else
-                command.Parameters.AddWithValue("@EndDate", DBNull.Value);
 
             try
             {
@@ -208,5 +197,93 @@ namespace CarRentalDataAccessLayer
 
             return MaintenanceList;
         }
+
+        public static short ValidateMaintenanceData(MaintenanceDTO MDTO, byte Mode)
+        {
+            short ResultCode = 8;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "usp_ValidateMaintenanceData";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+
+            command.Parameters.AddWithValue("@MaintenanceID", MDTO.MaintenanceID);
+            command.Parameters.AddWithValue("@CarID", MDTO.CarID);
+            command.Parameters.AddWithValue("@StartDate", MDTO.StartDate);
+            command.Parameters.AddWithValue("@MaintenanceType", (byte)MDTO.MaintenanceType);
+            command.Parameters.AddWithValue("@Cost", MDTO.Cost);
+            command.Parameters.AddWithValue("@MaintenanceStatus", (byte)MDTO.MaintenanceStatus);
+
+            command.Parameters.AddWithValue("@Mode", Mode);
+
+            SqlParameter resultCodeParam = new SqlParameter("@ResultCode", SqlDbType.SmallInt)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(resultCodeParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (resultCodeParam.Value != DBNull.Value)
+                {
+                    ResultCode = (short)resultCodeParam.Value;
+                }
+
+            }
+            catch//(Exception ex)
+            { return 8; }
+            finally
+            { connection.Close(); }
+
+            return ResultCode;
+
+        }
+
+        public static bool MaintenanceComplete(int MaintenanceID)
+        {
+            bool IsCompleted = false;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_MaintenanceComplete";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@MaintenanceID", MaintenanceID);
+
+            SqlParameter IsCompletedParam = new SqlParameter("@IsCompleted", SqlDbType.Bit)
+            {
+                Direction = ParameterDirection.Output
+            };
+            command.Parameters.Add(IsCompletedParam);
+
+            try
+            {
+                connection.Open();
+                command.ExecuteNonQuery();
+
+                if (IsCompletedParam.Value != DBNull.Value)
+                {
+                    IsCompleted = (bool)IsCompletedParam.Value;
+                }
+            }
+            catch //(Exception ex)
+            {
+
+                return false;
+            }
+            finally
+            { connection.Close(); }
+
+            return IsCompleted;
+
+
+        }
+
     }
 }

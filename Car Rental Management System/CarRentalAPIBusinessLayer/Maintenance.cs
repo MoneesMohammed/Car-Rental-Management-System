@@ -14,6 +14,24 @@ namespace CarRentalAPIBusinessLayer
         public enum enMode { AddNew = 0, Update = 1 };
         private enMode Mode = enMode.AddNew;
 
+        public enum enSaveResult
+        {
+            Success = 0,
+
+            CarNotFound,
+            CarStatusInvalid,
+
+            MaintenanceTypeInvalid,
+            StartDateInvalid,
+            CostInvalid,
+            MaintenanceAlreadyInProgress,
+
+            MaintenanceStatusIsCompleted,
+            
+            DatabaseError
+        }
+
+
         public int MaintenanceID { get; set; }
         public int CarID { get; set; }
         public DateTime StartDate { get; set; }
@@ -71,8 +89,15 @@ namespace CarRentalAPIBusinessLayer
         }
 
 
-        public bool Save()
+        public enSaveResult Save()
         {
+            short RCode = ValidateMaintenanceData(this.MDTO);
+
+            if (RCode != -1)
+            {
+                return (enSaveResult)RCode;
+            }
+
             switch (Mode)
             {
                 case enMode.AddNew:
@@ -80,19 +105,22 @@ namespace CarRentalAPIBusinessLayer
                     if (_AddNewMaintenance())
                     {
                         Mode = enMode.Update;
-                        return true;
+                        return enSaveResult.Success;
                     }
                     else
                     {
-                        return false;
+                        return enSaveResult.DatabaseError;
                     }
                 case enMode.Update:
 
-                    return (_UpdateMaintenance());
+                    if(_UpdateMaintenance())
+                        return enSaveResult.Success;
+                    else
+                        return enSaveResult.DatabaseError;
 
             }
 
-            return false;
+            return enSaveResult.DatabaseError;
         }
 
 
@@ -105,6 +133,16 @@ namespace CarRentalAPIBusinessLayer
         public static List<MaintenanceDTO> GetAllMaintenance()
         {
             return clsMaintenanceData.GetAllMaintenance();
+        }
+
+        public short ValidateMaintenanceData(MaintenanceDTO MDTO)
+        {
+            return clsMaintenanceData.ValidateMaintenanceData(MDTO , (byte)Mode);
+        }
+
+        public static bool MaintenanceComplete(int MaintenanceID)
+        {
+            return clsMaintenanceData.MaintenanceComplete(MaintenanceID);
         }
 
 

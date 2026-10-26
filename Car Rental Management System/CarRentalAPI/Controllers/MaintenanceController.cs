@@ -64,14 +64,42 @@ namespace CarRentalAPI.Controllers
 
             var Maintenance = new clsMaintenance(NewMaintenanceDTO);
 
-            if (!Maintenance.Save())
+            var result = Maintenance.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Adding Maintenance." });
+                case clsMaintenance.enSaveResult.Success:
+                    NewMaintenanceDTO.MaintenanceID = Maintenance.MaintenanceID;
+                    return CreatedAtRoute("GetMaintenanceByID", new { ID = NewMaintenanceDTO.MaintenanceID }, NewMaintenanceDTO);
+
+                case clsMaintenance.enSaveResult.CarNotFound:
+                    return BadRequest("Car Not Found.");
+
+                case clsMaintenance.enSaveResult.CarStatusInvalid:
+                    return BadRequest("Car Status Invalid.");
+
+                case clsMaintenance.enSaveResult.MaintenanceTypeInvalid:
+                    return BadRequest("Maintenance Type Invalid.");
+
+                case clsMaintenance.enSaveResult.StartDateInvalid:
+                    return BadRequest("Start Date Invalid.");
+
+                case clsMaintenance.enSaveResult.CostInvalid:
+                    return BadRequest("Cost Invalid.");
+
+                case clsMaintenance.enSaveResult.MaintenanceAlreadyInProgress:
+                    return BadRequest("Maintenance Already InProgress.");
+
+                case clsMaintenance.enSaveResult.MaintenanceStatusIsCompleted:
+                    return BadRequest("Maintenance Status Is Completed.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Adding Maintenance." });
+
+
             }
 
-            NewMaintenanceDTO.MaintenanceID = Maintenance.MaintenanceID;
 
-            return CreatedAtRoute("GetMaintenanceByID", new { ID = NewMaintenanceDTO.MaintenanceID }, NewMaintenanceDTO);
         }
 
 
@@ -93,20 +121,45 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Maintenance with ID {ID} not found.");
             }
 
-            Maintenance.CarID = updatedMaintenance.CarID;
-            Maintenance.StartDate = updatedMaintenance.StartDate;
-            Maintenance.EndDate = updatedMaintenance.EndDate;
             Maintenance.MaintenanceType = updatedMaintenance.MaintenanceType;
             Maintenance.ProblemDescription = updatedMaintenance.ProblemDescription;
             Maintenance.Cost = updatedMaintenance.Cost;
-            Maintenance.MaintenanceStatus = updatedMaintenance.MaintenanceStatus;
+           
 
-            if (!Maintenance.Save())
+            var result = Maintenance.Save();
+
+            switch (result)
             {
-                return StatusCode(500, new { Message = "Error : Updating Maintenance." });
+                case clsMaintenance.enSaveResult.Success:
+                    return Ok(Maintenance.MDTO);
+
+                case clsMaintenance.enSaveResult.CarNotFound:
+                    return BadRequest("Car Not Found.");
+
+                case clsMaintenance.enSaveResult.CarStatusInvalid:
+                    return BadRequest("Car Status Invalid.");
+
+                case clsMaintenance.enSaveResult.MaintenanceTypeInvalid:
+                    return BadRequest("Maintenance Type Invalid.");
+
+                case clsMaintenance.enSaveResult.StartDateInvalid:
+                    return BadRequest("Start Date Invalid.");
+
+                case clsMaintenance.enSaveResult.CostInvalid:
+                    return BadRequest("Cost Invalid.");
+
+                case clsMaintenance.enSaveResult.MaintenanceAlreadyInProgress:
+                    return BadRequest("Maintenance Already InProgress.");
+
+                case clsMaintenance.enSaveResult.MaintenanceStatusIsCompleted:
+                    return BadRequest("Maintenance Status Is Completed.");
+
+                default:
+                    return StatusCode(500, new { Message = "Error : Updating Maintenance." });
+
+
             }
 
-            return Ok(Maintenance.MDTO);
         }
 
 
@@ -133,6 +186,26 @@ namespace CarRentalAPI.Controllers
 
         //}
 
+
+        [HttpPut("{ID}/Complete", Name = "MaintenanceComplete")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult CompleteMaintenance(int ID)
+        {
+            if (ID < 1) //you will add all validation here 
+            {
+                return BadRequest($"Not Accepted ID: {ID}.");
+            }
+
+            bool IsCompleted = clsMaintenance.MaintenanceComplete(ID);
+
+            if (!IsCompleted)
+            {
+                return NotFound($"Maintenance with ID {ID} not found , or already Completed.");
+            }
+
+            return Ok($"Maintenance with ID: {ID} has been Completed.");
+        }
 
     }
 

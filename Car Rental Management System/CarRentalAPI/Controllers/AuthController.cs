@@ -22,19 +22,20 @@ namespace CarRentalAPI.Controllers
             var User = clsUser.Find(request.UserName);
 
             if (User == null)
-                return Unauthorized("Invalid credentials");
+                return Unauthorized("Invalid Credentials");
 
-            bool isValidPassword =
-                BCrypt.Net.BCrypt.Verify(request.Password, User.PasswordHash);
-
+            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.Password, User.PasswordHash);
+                
             if (!isValidPassword)
-                return Unauthorized("Invalid credentials");
+                return Unauthorized("Invalid Credentials");
+
+            if (!User.IsActive)
+                return Unauthorized("Invalid Credentials");
 
             clsUser.UpdateLastLoginDate(User.UserID);
 
             var claims = new[]
             {
-               
                 new Claim(ClaimTypes.NameIdentifier, User.UserID.ToString()),
 
                 new Claim(ClaimTypes.Name, User.UserName),

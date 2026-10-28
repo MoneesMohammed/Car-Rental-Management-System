@@ -1,5 +1,6 @@
 ﻿using CarRentalAPIBusinessLayer;
 using CarRentalDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,6 +8,7 @@ namespace CarRentalAPI.Controllers
 {
 
     //[Route("api/[controller]")]
+    [Authorize]
     [Route("api/RentalContracts")]
     [ApiController]
     public class RentalContractsController : ControllerBase

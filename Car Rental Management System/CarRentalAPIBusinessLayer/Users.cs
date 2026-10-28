@@ -113,8 +113,6 @@ namespace CarRentalAPIBusinessLayer
             if(!employee.IsActive)
                 return enSaveResult.EmployeeInactive;
 
-
-
             switch (Mode)
             {
                 case enMode.AddNew:

@@ -1,12 +1,15 @@
-﻿using CarRentalAPIBusinessLayer;
+﻿using BCrypt.Net;
+using CarRentalAPIBusinessLayer;
 using CarRentalDTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using BCrypt.Net;
 
 namespace CarRentalAPI.Controllers
 {
     //[Route("api/[controller]")]
+
+    [Authorize]
     [Route("api/Users")]
     [ApiController]
     public class UsersController : ControllerBase

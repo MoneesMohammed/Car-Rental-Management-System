@@ -14,6 +14,7 @@ namespace CarRentalAPI.Controllers
     public class RentalContractsController : ControllerBase
     {
 
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Own Branch /Assigned Records)
         [HttpGet("All", Name = "GetAllRentalContracts")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -27,12 +28,11 @@ namespace CarRentalAPI.Controllers
             return Ok(RentalContractList);
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Assigned Records)
         [HttpGet("{ID}", Name = "GetRentalContractByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public ActionResult<RentalContractDTO> GetRentalContractByID(int ID)
         {
             if (ID < 1)
@@ -113,7 +113,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Assigned Records)
         [HttpPut("{ID}", Name = "UpdateRentalContract")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -189,7 +189,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]
         [HttpDelete("{ID}", Name = "DeleteRentalContract")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -213,7 +213,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Assigned Records)
         [HttpGet("{ID}/PaymentSummary", Name = "GetPaymentSummaryByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

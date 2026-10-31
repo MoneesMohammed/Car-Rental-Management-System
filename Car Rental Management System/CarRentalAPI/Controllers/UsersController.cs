@@ -14,7 +14,7 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("All", Name = "GetAllUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -28,7 +28,7 @@ namespace CarRentalAPI.Controllers
             return Ok(UserList);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("{ID}", Name = "GetUserByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -52,7 +52,7 @@ namespace CarRentalAPI.Controllers
             return Ok(UDTO);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPost(Name = "AddUser")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -102,7 +102,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("{ID}", Name = "UpdateUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -156,7 +156,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{ID}", Name = "DeleteUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -180,6 +180,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{ID}/Activate", Name = "ActivateUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -200,29 +201,29 @@ namespace CarRentalAPI.Controllers
             return Ok($"User with ID: {ID} has been Activated.");
         }
 
-        //UpdateLastLoginDate
+        ////UpdateLastLoginDate
 
-        [HttpPut("{ID}/LastLogin", Name = "UpdateLastLogin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult UpdateLastLogin(int ID)
-        {
-            if (ID < 1) //you will add all validation here 
-            {
-                return BadRequest("Invalid User data.");
-            }
+        //[HttpPut("{ID}/LastLogin", Name = "UpdateLastLogin")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //public ActionResult UpdateLastLogin(int ID)
+        //{
+        //    if (ID < 1) //you will add all validation here 
+        //    {
+        //        return BadRequest("Invalid User data.");
+        //    }
 
-            bool IsUpdate = clsUser.UpdateLastLoginDate(ID);
+        //    bool IsUpdate = clsUser.UpdateLastLoginDate(ID);
 
-            if (!IsUpdate)
-            {
-                return NotFound($"User with ID {ID} not found , or already Active.");
-            }
+        //    if (!IsUpdate)
+        //    {
+        //        return NotFound($"User with ID {ID} not found , or already Active.");
+        //    }
 
-            return Ok($"User with ID: {ID} has been Updated to Last Login Date.");
-        }
+        //    return Ok($"User with ID: {ID} has been Updated to Last Login Date.");
+        //}
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("Deactivated", Name = "GetDeactivatedUsers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

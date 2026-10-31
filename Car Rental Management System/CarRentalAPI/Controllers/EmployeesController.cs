@@ -1,10 +1,12 @@
-﻿using CarRentalAPIBusinessLayer;
+﻿using CarRentalAPI.Authorization;
+using CarRentalAPIBusinessLayer;
 using CarRentalDataAccessLayer;
 using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Security.Claims;
 
 namespace CarRentalAPI.Controllers
 {
@@ -14,11 +16,10 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("All", Name = "GetAllEmployees")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<EmployeeDTO>> GetAllEmployees()
         {
             List<EmployeeDTO> EmployeeList = clsEmployee.GetAllEmployees();
@@ -29,17 +30,34 @@ namespace CarRentalAPI.Controllers
             return Ok(EmployeeList);
         }
 
-
+        // [Authorize(Roles = "Admin,Manager")]//That Need Ownership, Rental Agent (Owner Only)
         [HttpGet("{ID}", Name = "GetEmployeeByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<EmployeeDTO> GetEmployeeByID(int ID)
+        public async Task <ActionResult<EmployeeDTO>> GetEmployeeByID(int ID ,
+            [FromServices] IAuthorizationService authorizationService)
         {
             if (ID < 1)
             {
                 return BadRequest($"Not Accepted ID: {ID}");
             }
+
+            //add Ownership
+            //var UserID = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            //var UserRole = User.FindFirstValue(ClaimTypes.Role);
+
+            //int authEmployeeID = clsUser.Find(int.Parse(UserID!))!.EmployeeID;
+            //bool IsAdminOrManager = (UserRole == "Admin" || UserRole == "Manager");
+
+            //if (!IsAdminOrManager && authEmployeeID != ID)
+            //    return Forbid(); // Returns HTTP 403 Forbidden EmployeeDataPolicyHandler
+            
+            var authResult = await authorizationService.AuthorizeAsync(User,ID, "EmployeeDataPolicy");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
 
             var Employee = clsEmployee.Find(ID);
 
@@ -53,7 +71,7 @@ namespace CarRentalAPI.Controllers
             return Ok(EDTO);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPost(Name = "AddEmployee")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -94,17 +112,24 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        //[Authorize(Roles = "Admin")]
         [HttpPut("{ID}", Name = "UpdateEmployee")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<clsEmployee> UpdateEmployee(int ID, EmployeeDTO updatedEmployee)
+        public async Task<ActionResult<clsEmployee>> UpdateEmployee(int ID, EmployeeDTO updatedEmployee,
+           [FromServices] IAuthorizationService authorizationService)
         {
             if (ID < 1 || updatedEmployee == null) //you will add all validation here 
             {
                 return BadRequest("Invalid Employee data.");
             }
+
+            var authResult = await authorizationService.AuthorizeAsync(User, ID, "EmployeeOwnerOrAdmin");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
 
             var Employee = clsEmployee.Find(ID);
 
@@ -160,7 +185,7 @@ namespace CarRentalAPI.Controllers
             
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{ID}", Name = "DeleteEmployee")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -184,6 +209,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut("{ID}/Activate", Name = "ActivateEmployee")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -204,7 +230,7 @@ namespace CarRentalAPI.Controllers
             return Ok($"Employee with ID: {ID} has been Activated.");
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpGet("Deactivated", Name = "GetDeactivatedEmployees")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

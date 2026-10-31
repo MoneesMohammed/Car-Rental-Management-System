@@ -18,7 +18,6 @@ namespace CarRentalAPI.Controllers
         [HttpGet("All", Name = "GetAllCars")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<CarDTO>> GetAllCars()
         {
             List<CarDTO> CarList = clsCar.GetAllCars();
@@ -34,7 +33,6 @@ namespace CarRentalAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public ActionResult<CarDTO> GetCarByID(int ID)
         {
             if (ID < 1)
@@ -54,7 +52,7 @@ namespace CarRentalAPI.Controllers
             return Ok(CDTO);
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost(Name = "AddCar")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -102,7 +100,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{ID}", Name = "UpdateCar")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -166,16 +164,9 @@ namespace CarRentalAPI.Controllers
                     return StatusCode(500, new { Message = "Error : Updating Car." });
             }
 
-
-
-
-
-
-
-
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{ID}", Name = "DeleteCar")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

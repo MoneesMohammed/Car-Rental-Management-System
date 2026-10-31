@@ -12,11 +12,10 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class PaymentsController : ControllerBase
     {
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Assigned Records)
         [HttpGet("All", Name = "GetAllPayments")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<PaymentDTO>> GetAllPayments()
         {
             List<PaymentDTO> PaymentList = clsPayment.GetAllPayments();
@@ -27,12 +26,11 @@ namespace CarRentalAPI.Controllers
             return Ok(PaymentList);
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Assigned Records)
         [HttpGet("{ID}", Name = "GetPaymentByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public ActionResult<PaymentDTO> GetPaymentByID(int ID)
         {
             if (ID < 1)
@@ -94,7 +92,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{ID}", Name = "UpdatePayment")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

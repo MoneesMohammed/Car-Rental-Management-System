@@ -1,4 +1,6 @@
+using CarRentalAPI.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
@@ -55,8 +57,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 // Register authorization services.
 // This enables attributes like [Authorize] and role-based authorization.
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("EmployeeDataPolicy", policy =>
+        policy.Requirements.Add(new EmployeeDataPolicyRequirement(isAdminOnly: false)));
 
+    options.AddPolicy("EmployeeOwnerOrAdmin", policy =>
+       policy.Requirements.Add(new EmployeeDataPolicyRequirement(isAdminOnly: true)));
+});
+
+builder.Services.AddSingleton<IAuthorizationHandler, EmployeeDataPolicyHandler>();
 
 // Add services to the container.
 

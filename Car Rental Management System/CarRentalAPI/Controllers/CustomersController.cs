@@ -16,7 +16,6 @@ namespace CarRentalAPI.Controllers
         [HttpGet("All", Name = "GetAllCustomers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<CustomerDTO>> GetAllCustomers()
         {
             List<CustomerDTO> CustomerList = clsCustomer.GetAllCustomers();
@@ -32,7 +31,6 @@ namespace CarRentalAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public ActionResult<CustomerDTO> GetCustomerByID(int ID)
         {
             if (ID < 1)
@@ -118,8 +116,6 @@ namespace CarRentalAPI.Controllers
             Customer.DrivingLicenseNo = updatedCustomer.DrivingLicenseNo;
             Customer.DrivingLicenseExpiryDate = updatedCustomer.DrivingLicenseExpiryDate;
             
-            
-
             Customer.FirstName   = updatedCustomer.PDTO.FirstName;
             Customer.SecondName  = updatedCustomer.PDTO.SecondName;
             Customer.ThirdName   = updatedCustomer.PDTO.ThirdName;
@@ -155,7 +151,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpDelete("{ID}", Name = "DeleteCustomer")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -179,7 +175,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{ID}/Activate", Name = "ActivateCustomer")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -200,11 +196,10 @@ namespace CarRentalAPI.Controllers
             return Ok($"Customer with ID: {ID} has been Activated.");
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("Deactivated", Name = "GetDeactivatedCustomers")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<CustomerDTO>> GetDeactivatedCustomers()
         {
             List<CustomerDTO> CustomerList = clsCustomer.GetAllDeactivateCustomers();

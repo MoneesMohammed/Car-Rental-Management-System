@@ -13,11 +13,10 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class ReservationsController : ControllerBase
     {
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Own Branch / Assigned Records)
         [HttpGet("All", Name = "GetAllReservations")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<ReservationDTO>> GetAllReservations()
         {
             List<ReservationDTO> ReservationList = clsReservation.GetAllReservations();
@@ -28,12 +27,11 @@ namespace CarRentalAPI.Controllers
             return Ok(ReservationList);
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Own Branch / Assigned Records)
         [HttpGet("{ID}", Name = "GetReservationByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public ActionResult<ReservationDTO> GetReservationByID(int ID)
         {
             if (ID < 1)
@@ -124,7 +122,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Assigned Records)
         [HttpPut("{ID}", Name = "UpdateReservation")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -198,7 +196,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        //[Authorize(Roles = "Admin,Manager")]
         [HttpDelete("{ID}", Name = "DeleteReservation")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

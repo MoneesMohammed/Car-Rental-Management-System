@@ -16,7 +16,6 @@ namespace CarRentalAPI.Controllers
         [HttpGet("All", Name = "GetAllBranches")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<BranchDTO>> GetAllBranches()
         {
             List<BranchDTO> BrancheList = clsBranch.GetAllBranches();
@@ -51,7 +50,7 @@ namespace CarRentalAPI.Controllers
             return Ok(BDTO);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPost(Name = "AddBranch")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -75,7 +74,7 @@ namespace CarRentalAPI.Controllers
             return CreatedAtRoute("GetBranchByID", new { ID = NewBranchDTO.BranchID }, NewBranchDTO);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("{ID}", Name = "UpdateBranch")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -107,7 +106,7 @@ namespace CarRentalAPI.Controllers
             return Ok(Branche.BDTO);
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{ID}", Name = "DeleteBranch")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -131,7 +130,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin")]
         [HttpPut("{ID}/Activate", Name = "ActivateBranch")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -152,6 +151,7 @@ namespace CarRentalAPI.Controllers
             return Ok($"Branch with ID: {ID} has been Activated.");
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("Deactivated", Name = "GetDeactivatedBranches")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

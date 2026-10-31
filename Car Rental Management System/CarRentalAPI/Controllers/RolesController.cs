@@ -12,11 +12,10 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class RolesController : ControllerBase
     {
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("All", Name = "GetAllRoles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<RoleDTO>> GetAllRoles()
         {
             List<RoleDTO> RoleList = clsRole.GetAllRoles();
@@ -27,12 +26,11 @@ namespace CarRentalAPI.Controllers
             return Ok(RoleList);
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("{ID}", Name = "GetRoleByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-
         public ActionResult<RoleDTO> GetRoleByID(int ID)
         {
             if (ID < 1)

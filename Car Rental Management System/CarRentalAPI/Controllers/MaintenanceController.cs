@@ -12,11 +12,10 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class MaintenanceController : ControllerBase
     {
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("All", Name = "GetAllMaintenance")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<MaintenanceDTO>> GetAllMaintenance()
         {
             List<MaintenanceDTO> MaintenanceList = clsMaintenance.GetAllMaintenance();
@@ -27,7 +26,7 @@ namespace CarRentalAPI.Controllers
             return Ok(MaintenanceList);
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("{ID}", Name = "GetMaintenanceByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -52,7 +51,7 @@ namespace CarRentalAPI.Controllers
             return Ok(MDTO);
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost(Name = "AddMaintenance")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -104,7 +103,7 @@ namespace CarRentalAPI.Controllers
 
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{ID}", Name = "UpdateMaintenance")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -188,7 +187,7 @@ namespace CarRentalAPI.Controllers
 
         //}
 
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{ID}/Complete", Name = "MaintenanceComplete")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

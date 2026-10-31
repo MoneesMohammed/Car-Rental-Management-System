@@ -13,7 +13,7 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class JobTitlesController : ControllerBase
     {
-
+        [Authorize(Roles = "Admin,Manager")]
         [HttpGet("All", Name = "GetAllJobTitles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -27,7 +27,7 @@ namespace CarRentalAPI.Controllers
             return Ok(JobTitleList);
         }
 
-
+        [Authorize(Roles = "Admin,Manager")]//I'll add Ownership for Rental Agent (Assigned Records)
         [HttpGet("{ID}", Name = "GetJobTitleByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -37,11 +37,18 @@ namespace CarRentalAPIBusinessLayer
 
         public string OldUserName { get; }
 
+        // Refresh Token Data
+        public string?   RefreshTokenHash      { get; set; }
+        public DateTime? RefreshTokenExpiresAt { get; set; }
+        public DateTime? RefreshTokenRevokedAt { get; set; }
+
         public UserDTO UDTO
         {
-            get { return new UserDTO(this.UserID, this.EmployeeID, this.RoleID,this.RoleName , this.UserName, this.PasswordHash, this.IsActive, this.CreateDate, this.LastLogin); }
+            get { 
+                return new UserDTO(this.UserID, this.EmployeeID, this.RoleID,this.RoleName , this.UserName,
+                                    this.PasswordHash, this.IsActive, this.CreateDate, this.LastLogin);
+            }
         }
-
 
         public clsUser(UserDTO UDTO, enMode cMode = enMode.AddNew)
         {
@@ -60,13 +67,41 @@ namespace CarRentalAPIBusinessLayer
             this.Mode = cMode;
         }
 
+        public clsUser(UserDTO UDTO, string? RefreshTokenHash, DateTime? RefreshTokenExpiresAt, DateTime? RefreshTokenRevokedAt, enMode cMode = enMode.AddNew)
+        {
+            this.UserID = UDTO.UserID;
+            this.EmployeeID = UDTO.EmployeeID;
+            this.RoleID = UDTO.RoleID;
+            this.RoleName = UDTO.RoleName;
+            this.UserName = UDTO.UserName;
+            this.PasswordHash = UDTO.PasswordHash;
+            this.IsActive = UDTO.IsActive;
+            this.CreateDate = UDTO.CreateDate;
+            this.LastLogin = UDTO.LastLogin;
+
+            this.RefreshTokenHash = RefreshTokenHash;
+            this.RefreshTokenExpiresAt = RefreshTokenExpiresAt;
+            this.RefreshTokenRevokedAt = RefreshTokenRevokedAt;
+
+            this.OldUserName = UDTO.UserName;
+
+            this.Mode = cMode;
+        }
 
         public static clsUser? Find(int UserID)
         {
+            string? RefreshTokenHash = "";
+            DateTime? RefreshTokenExpiresAt = DateTime.Now, RefreshTokenRevokedAt = DateTime.Now;
+
             UserDTO? UDTO = clsUserData.GetUserInfoByUserID(UserID);
 
             if (UDTO != null)
             {
+                if (clsUserData.GetRefreshTokenInfoByUserID(UserID, ref RefreshTokenHash, ref RefreshTokenExpiresAt, ref RefreshTokenRevokedAt))
+                {
+                    return new clsUser(UDTO, RefreshTokenHash, RefreshTokenExpiresAt, RefreshTokenRevokedAt, enMode.Update);
+                }
+
                 return new clsUser(UDTO, enMode.Update);
             }
             else
@@ -76,10 +111,18 @@ namespace CarRentalAPIBusinessLayer
 
         public static clsUser? Find(string UserName)
         {
+            string? RefreshTokenHash = "";
+            DateTime? RefreshTokenExpiresAt = DateTime.Now, RefreshTokenRevokedAt = DateTime.Now;
+
             UserDTO? UDTO = clsUserData.GetUserInfoByUserName(UserName);
 
             if (UDTO != null)
             {
+                if (clsUserData.GetRefreshTokenInfoByUserID(UDTO.UserID, ref RefreshTokenHash, ref RefreshTokenExpiresAt, ref RefreshTokenRevokedAt))
+                {
+                    return new clsUser(UDTO, RefreshTokenHash, RefreshTokenExpiresAt, RefreshTokenRevokedAt, enMode.Update);
+                }
+
                 return new clsUser(UDTO, enMode.Update);
             }
             else
@@ -188,6 +231,14 @@ namespace CarRentalAPIBusinessLayer
         {
             return clsUserData.IsEmployeeIDUnique(EmployeeID);
         }
+
+
+        public bool SaveRefreshTokenData()
+        {
+            return clsUserData.UpdateRefreshTokenData(this.UserID, this.RefreshTokenHash, this.RefreshTokenExpiresAt, this.RefreshTokenRevokedAt); 
+        }
+
+
 
     }
 

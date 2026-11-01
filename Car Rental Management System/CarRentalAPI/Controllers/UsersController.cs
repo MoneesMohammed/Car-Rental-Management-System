@@ -4,6 +4,7 @@ using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Specialized;
 
 namespace CarRentalAPI.Controllers
 {
@@ -29,7 +30,7 @@ namespace CarRentalAPI.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpGet("{ID}", Name = "GetUserByID")]
+        [HttpGet("ByID/{ID}", Name = "GetUserByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -45,6 +46,30 @@ namespace CarRentalAPI.Controllers
             if (User == null)
             {
                 return NotFound($"User with ID: {ID} not found.");
+            }
+
+            UserDTO UDTO = User.UDTO;
+
+            return Ok(UDTO);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpGet("ByUserName/{UserName}", Name = "GetUserByUserName")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<UserDTO> GetUserByUserName(string UserName)
+        {
+            if (string.IsNullOrEmpty(UserName))
+            {
+                return BadRequest($"Not Accepted UserName: Is Null Or Empty");
+            }
+
+            var User = clsUser.Find(UserName);
+
+            if (User == null)
+            {
+                return NotFound($"User with UserName: {UserName} not found.");
             }
 
             UserDTO UDTO = User.UDTO;

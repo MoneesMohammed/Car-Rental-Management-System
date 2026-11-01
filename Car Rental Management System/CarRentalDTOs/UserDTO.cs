@@ -18,6 +18,7 @@ namespace CarRentalDTOs
         public DateTime CreateDate { get; set; }
         public DateTime? LastLogin { get; set; }
 
+
         public UserDTO(int UserID, int EmployeeID, int RoleID, string RoleName ,string UserName, string PasswordHash, bool IsActive, DateTime CreateDate, DateTime? LastLogin)
         {
             this.UserID = UserID;

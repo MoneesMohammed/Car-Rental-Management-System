@@ -33,7 +33,13 @@ namespace CarRentalDataAccessLayer
 
                     DateTime? LastLogin = reader["LastLogin"] == DBNull.Value ? null : (DateTime)reader["LastLogin"];
 
-                    return new UserDTO(UserID, (int)reader["EmployeeID"], (int)reader["RoleID"], (string)reader["RoleName"], (string)reader["UserName"], (string)reader["PasswordHash"], (bool)reader["IsActive"], (DateTime)reader["CreateDate"], LastLogin);
+                    //string? RefreshTokenHash = reader["RefreshTokenHash"] == DBNull.Value ? null : (string?)reader["RefreshTokenHash"];
+                    //DateTime? RefreshTokenExpiresAt = reader["RefreshTokenExpiresAt"] == DBNull.Value ? null : (DateTime?)reader["RefreshTokenExpiresAt"];
+                    //DateTime? RefreshTokenRevokedAt = reader["RefreshTokenRevokedAt"] == DBNull.Value ? null : (DateTime?)reader["RefreshTokenRevokedAt"];
+
+              
+                    return new UserDTO(UserID, (int)reader["EmployeeID"], (int)reader["RoleID"], (string)reader["RoleName"], (string)reader["UserName"],
+                        (string)reader["PasswordHash"], (bool)reader["IsActive"], (DateTime)reader["CreateDate"], LastLogin);
                 }
 
                 reader.Close();
@@ -94,7 +100,6 @@ namespace CarRentalDataAccessLayer
             return ID;
         }
 
-
         public static bool UpdateUser(UserDTO UDTO)
         {
             int RowAffected = 0;
@@ -128,7 +133,6 @@ namespace CarRentalDataAccessLayer
             return (RowAffected > 0);
         }
 
-
         public static bool DeleteUser(int UserID)
         {
             int RowAffected = 0;
@@ -159,7 +163,6 @@ namespace CarRentalDataAccessLayer
             return (RowAffected > 0);
         }
 
-
         public static List<UserDTO> GetAllUsers()
         {
             var UserList = new List<UserDTO>();
@@ -189,7 +192,7 @@ namespace CarRentalDataAccessLayer
                     DateTime CreateDate = (DateTime)reader["CreateDate"];
                     DateTime? LastLogin = reader["LastLogin"] == DBNull.Value ? null : (DateTime)reader["LastLogin"];
 
-                    UserList.Add(new UserDTO(UserID, EmployeeID, RoleID, RoleName, UserName, PasswordHash, IsActive, CreateDate, LastLogin));
+                    UserList.Add(new UserDTO(UserID, EmployeeID, RoleID, RoleName, UserName, PasswordHash, IsActive, CreateDate, LastLogin ));
                 }
 
                 reader.Close();
@@ -235,7 +238,6 @@ namespace CarRentalDataAccessLayer
             return (RowAffected > 0);
         }
 
-
         public static bool UpdateLastLoginDate(int UserID)
         {
             int RowAffected = 0;
@@ -269,7 +271,6 @@ namespace CarRentalDataAccessLayer
             return (RowAffected > 0);
         }
 
-
         public static List<UserDTO> GetAllDeactivateUsers()
         {
             var UserList = new List<UserDTO>();
@@ -299,7 +300,8 @@ namespace CarRentalDataAccessLayer
                     DateTime CreateDate = (DateTime)reader["CreateDate"];
                     DateTime? LastLogin = reader["LastLogin"] == DBNull.Value ? null : (DateTime)reader["LastLogin"];
 
-                    UserList.Add(new UserDTO(UserID, EmployeeID, RoleID, RoleName, UserName, PasswordHash, IsActive, CreateDate, LastLogin));
+                   
+                    UserList.Add(new UserDTO(UserID, EmployeeID, RoleID, RoleName, UserName, PasswordHash, IsActive, CreateDate, LastLogin ));
                 }
 
                 reader.Close();
@@ -311,7 +313,6 @@ namespace CarRentalDataAccessLayer
 
             return UserList;
         }
-
 
         public static UserDTO? GetUserInfoByUserName(string UserName)
         {
@@ -334,7 +335,9 @@ namespace CarRentalDataAccessLayer
 
                     DateTime? LastLogin = reader["LastLogin"] == DBNull.Value ? null : (DateTime)reader["LastLogin"];
 
-                    return new UserDTO( (int)reader["UserID"], (int)reader["EmployeeID"], (int)reader["RoleID"], (string)reader["RoleName"], UserName, (string)reader["PasswordHash"], (bool)reader["IsActive"], (DateTime)reader["CreateDate"], LastLogin);
+                    return new UserDTO( (int)reader["UserID"], (int)reader["EmployeeID"], (int)reader["RoleID"], (string)reader["RoleName"], UserName,
+                        (string)reader["PasswordHash"], (bool)reader["IsActive"], (DateTime)reader["CreateDate"], LastLogin);
+                        
                 }
 
                 reader.Close();
@@ -350,7 +353,6 @@ namespace CarRentalDataAccessLayer
 
             return null;
         }
-
 
         public static bool IsUserNameUnique(string UserName)
         {
@@ -390,7 +392,6 @@ namespace CarRentalDataAccessLayer
             return IsUnique;
         }
 
-
         public static bool IsEmployeeIDUnique(int EmployeeID)
         {
             bool IsUnique = false;
@@ -429,7 +430,93 @@ namespace CarRentalDataAccessLayer
             return IsUnique;
         }
 
+        public static bool GetRefreshTokenInfoByUserID(int UserID ,ref string? RefreshTokenHash,ref DateTime? RefreshTokenExpiresAt,ref DateTime? RefreshTokenRevokedAt)
+        {
+            bool isFound = false;
 
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_GetRefreshTokenInfoByID";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.AddWithValue("@UserID", UserID);
+
+            try
+            {
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                if (reader.Read())
+                {
+                    isFound = true;
+
+                    RefreshTokenHash      = reader["RefreshTokenHash"] == DBNull.Value ? null : (string?)reader["RefreshTokenHash"];
+                    RefreshTokenExpiresAt = reader["RefreshTokenExpiresAt"] == DBNull.Value ? null : (DateTime?)reader["RefreshTokenExpiresAt"];
+                    RefreshTokenRevokedAt = reader["RefreshTokenRevokedAt"] == DBNull.Value ? null : (DateTime?)reader["RefreshTokenRevokedAt"];
+
+                }
+
+                reader.Close();
+            }
+            catch//(Exception ex)
+            {
+                isFound = false;
+            }
+            finally
+            {
+                connection.Close();
+            }
+
+            return isFound;
+        }
+
+
+        public static bool UpdateRefreshTokenData(int UserID, string? RefreshTokenHash, DateTime? RefreshTokenExpiresAt, DateTime? RefreshTokenRevokedAt)
+        {
+            int RowAffected = 0;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_UpdateRefreshTokenData";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@UserID", UserID);
+           
+            if (RefreshTokenHash != null)
+                command.Parameters.AddWithValue("@RefreshTokenHash", RefreshTokenHash);
+            else
+                command.Parameters.AddWithValue("@RefreshTokenHash", DBNull.Value);
+
+            if (RefreshTokenExpiresAt != null)
+                command.Parameters.AddWithValue("@RefreshTokenExpiresAt", RefreshTokenExpiresAt);
+            else
+                command.Parameters.AddWithValue("@RefreshTokenExpiresAt", DBNull.Value);
+
+            if (RefreshTokenRevokedAt != null)
+                command.Parameters.AddWithValue("@RefreshTokenRevokedAt", RefreshTokenRevokedAt);
+            else
+                command.Parameters.AddWithValue("@RefreshTokenRevokedAt", DBNull.Value);
+
+
+            try
+            {
+                connection.Open();
+                object result = command.ExecuteScalar();
+
+                if (result != null && int.TryParse(result.ToString(), out int affectedRows))
+                {
+                    RowAffected = affectedRows;
+                }
+            }
+            catch//(Exception ex)
+            { return false; }
+            finally
+            { connection.Close(); }
+
+            return (RowAffected > 0);
+        }
 
     }
 

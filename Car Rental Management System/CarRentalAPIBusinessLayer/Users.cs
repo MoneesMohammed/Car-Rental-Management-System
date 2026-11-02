@@ -238,7 +238,10 @@ namespace CarRentalAPIBusinessLayer
             return clsUserData.UpdateRefreshTokenData(this.UserID, this.RefreshTokenHash, this.RefreshTokenExpiresAt, this.RefreshTokenRevokedAt); 
         }
 
-
+        public bool SavePassword()
+        {
+            return clsUserData.UpdatePassword(this.UserID, this.PasswordHash);
+        }
 
     }
 

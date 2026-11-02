@@ -31,8 +31,8 @@ namespace CarRentalAPI.Authorization
                 return Task.CompletedTask;
             }
 
-            //if (!context.User.IsInRole("Rental Agent"))
-            //    return Task.CompletedTask;
+            if (!context.User.IsInRole("Rental Agent") && !context.User.IsInRole("Manager"))
+                return Task.CompletedTask;
 
             // Ownership check
             var userID = context.User.FindFirstValue(ClaimTypes.NameIdentifier);

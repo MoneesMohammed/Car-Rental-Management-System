@@ -165,6 +165,12 @@ namespace CarRentalAPIBusinessLayer
         {
             return clsEmployeeData.GetAllDeactivateEmployees();
         }
+
+        public static List<EmployeeDTO> GetEmployeesWithoutUserAccounts()
+        {
+            return clsEmployeeData.GetEmployeesWithoutUserAccounts();
+        }
+
     }
 
 }

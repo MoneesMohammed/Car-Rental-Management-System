@@ -1,4 +1,5 @@
 ﻿using BCrypt.Net;
+using CarRentalAPI.Global_Classes;
 using CarRentalAPIBusinessLayer;
 using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -88,6 +89,23 @@ namespace CarRentalAPI.Controllers
             {
                 return BadRequest("Invalid User Data.");
             }
+            
+            if (!clsValidation.IsValidPassword(NewUserDTO.PasswordHash))
+            {
+                return BadRequest(new
+                {
+                    Message = "Password does not meet the security requirements.",
+                    Requirements = new[]
+                    {
+                        "At least 8 characters",
+                        "At least one uppercase letter (A-Z)",
+                        "At least one lowercase letter (a-z)",
+                        "At least one number (0-9)",
+                        "At least one special character (!@#$%^&*)"
+                    }
+                });
+            }
+
 
             NewUserDTO.PasswordHash = BCrypt.Net.BCrypt.HashPassword(NewUserDTO.PasswordHash);
 
@@ -146,11 +164,27 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"User with ID {ID} not found.");
             }
 
-            
+            if (!clsValidation.IsValidPassword(updatedUser.PasswordHash))
+            {
+                return BadRequest(new
+                {
+                    Message = "Password does not meet the security requirements.",
+                    Requirements = new[]
+                    {
+                        "At least 8 characters",
+                        "At least one uppercase letter (A-Z)",
+                        "At least one lowercase letter (a-z)",
+                        "At least one number (0-9)",
+                        "At least one special character (!@#$%^&*)"
+                    }
+                });
+            }
+
+
             User.RoleID = updatedUser.RoleID;
             User.UserName = updatedUser.UserName;
             User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(updatedUser.PasswordHash);
-            
+
             var result = User.Save();
 
             switch (result)
@@ -262,6 +296,78 @@ namespace CarRentalAPI.Controllers
             return Ok(UserList);
         }
 
+        //[Authorize(Roles = "Admin")]//need to add Policy
+        [HttpPut("{ID}/ChangePassword", Name = "ChangePassword")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task <ActionResult> ChangePassword(int ID, [FromBody] ChangePasswordRequest request,
+            [FromServices] IAuthorizationService authorizationService)
+        {
+            if (ID < 1 || request == null || 
+                string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword)) 
+            {
+                return BadRequest("Invalid Password data.");
+            }
+
+            var authResult = await authorizationService.AuthorizeAsync(HttpContext.User, ID, "UserOwnPasswordPolicy");
+
+            if (!authResult.Succeeded)
+                return Forbid(); // 403
+
+
+            if (request.CurrentPassword == request.NewPassword)
+            {
+                return BadRequest("New password must be different from current password.");
+            }
+
+            clsUser? User = clsUser.Find(ID);
+
+            if (User == null)
+            {
+                return NotFound($"User with ID {ID} not found.");
+            }
+
+            if (!User.IsActive)
+            {
+                return Unauthorized("User Inactive");
+            }
+
+            bool isValidPassword = BCrypt.Net.BCrypt.Verify(request.CurrentPassword, User.PasswordHash);
+
+            if (!isValidPassword)
+            {
+                return Unauthorized("Invalid Current Password.");
+            }
+
+            if (!clsValidation.IsValidPassword(request.NewPassword))
+            {
+                return BadRequest(new
+                {
+                    Message = "Password does not meet the security requirements.",
+                    Requirements = new[]
+                    {
+                        "At least 8 characters",
+                        "At least one uppercase letter (A-Z)",
+                        "At least one lowercase letter (a-z)",
+                        "At least one number (0-9)",
+                        "At least one special character (!@#$%^&*)"
+                    }
+                });
+            }
+
+            User.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+
+            var result = User.SavePassword();
+
+            if(!result)
+                return StatusCode(500, new { Message = "Error : Changing Password." });
+
+            return Ok(new { Message = "Password Changed Successfully." });
+            
+        }
 
     }
 

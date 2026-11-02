@@ -46,8 +46,7 @@ namespace CarRentalAPI.Controllers
                 issuer: "CarRentalApi",
                 audience: "CarRentalApiUsers",
                 claims: claims,
-                // expires: DateTime.UtcNow.AddMinutes(30),
-                expires: DateTime.UtcNow.AddSeconds(10),
+                expires: DateTime.UtcNow.AddMinutes(30),
                 signingCredentials: creds
             );
 

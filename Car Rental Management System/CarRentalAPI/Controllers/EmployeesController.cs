@@ -43,16 +43,6 @@ namespace CarRentalAPI.Controllers
                 return BadRequest($"Not Accepted ID: {ID}");
             }
 
-            //add Ownership
-            //var UserID = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            //var UserRole = User.FindFirstValue(ClaimTypes.Role);
-
-            //int authEmployeeID = clsUser.Find(int.Parse(UserID!))!.EmployeeID;
-            //bool IsAdminOrManager = (UserRole == "Admin" || UserRole == "Manager");
-
-            //if (!IsAdminOrManager && authEmployeeID != ID)
-            //    return Forbid(); // Returns HTTP 403 Forbidden EmployeeDataPolicyHandler
-            
             var authResult = await authorizationService.AuthorizeAsync(User,ID, "EmployeeDataPolicy");
 
             if (!authResult.Succeeded)
@@ -240,6 +230,20 @@ namespace CarRentalAPI.Controllers
 
             if (EmployeeList.Count == 0)
                 return NotFound("No Deactivated Employees Were Found!");
+
+            return Ok(EmployeeList);
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpGet("WithoutUserAccounts", Name = "WithoutUserAccounts")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<IEnumerable<EmployeeDTO>> GetEmployeesWithoutUserAccounts()
+        {
+            List<EmployeeDTO> EmployeeList = clsEmployee.GetEmployeesWithoutUserAccounts();
+
+            if (EmployeeList.Count == 0)
+                return NotFound("No Employees Found!");
 
             return Ok(EmployeeList);
         }

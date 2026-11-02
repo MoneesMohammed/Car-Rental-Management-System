@@ -11,7 +11,6 @@ namespace CarRentalDataAccessLayer
 {
     public class clsUserData
     {
-
         public static UserDTO? GetUserInfoByUserID(int UserID)
         {
 
@@ -55,7 +54,6 @@ namespace CarRentalDataAccessLayer
 
             return null;
         }
-
 
         public static int AddNewUser(UserDTO UDTO)
         {
@@ -113,8 +111,8 @@ namespace CarRentalDataAccessLayer
             command.Parameters.AddWithValue("@UserID", UDTO.UserID);
             command.Parameters.AddWithValue("@RoleID", UDTO.RoleID);
             command.Parameters.AddWithValue("@UserName", UDTO.UserName);
-            command.Parameters.AddWithValue("@PasswordHash", UDTO.PasswordHash);
-            
+            command.Parameters.AddWithValue("@PasswordHash",UDTO.PasswordHash);
+
             try
             {
                 connection.Open();
@@ -471,7 +469,6 @@ namespace CarRentalDataAccessLayer
             return isFound;
         }
 
-
         public static bool UpdateRefreshTokenData(int UserID, string? RefreshTokenHash, DateTime? RefreshTokenExpiresAt, DateTime? RefreshTokenRevokedAt)
         {
             int RowAffected = 0;
@@ -518,6 +515,37 @@ namespace CarRentalDataAccessLayer
             return (RowAffected > 0);
         }
 
+        public static bool UpdatePassword(int UserID,string PasswordHash)
+        {
+            int RowAffected = 0;
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_UpdatePassword";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            command.Parameters.AddWithValue("@UserID", UserID);
+            command.Parameters.AddWithValue("@PasswordHash", PasswordHash);
+            
+
+            try
+            {
+                connection.Open();
+                object result = command.ExecuteScalar();
+
+                if (result != null && int.TryParse(result.ToString(), out int affectedRows))
+                {
+                    RowAffected = affectedRows;
+                }
+            }
+            catch//(Exception ex)
+            { return false; }
+            finally
+            { connection.Close(); }
+
+            return (RowAffected > 0);
+        }
     }
 
 }

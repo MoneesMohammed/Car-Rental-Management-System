@@ -357,6 +357,65 @@ namespace CarRentalDataAccessLayer
             return EmployeeList;
         }
 
+
+        public static List<EmployeeDTO> GetEmployeesWithoutUserAccounts()
+        {
+            var EmployeeList = new List<EmployeeDTO>();
+
+            SqlConnection connection = new SqlConnection(clsDataSettings.ConnectionString);
+
+            string query = "SP_GetEmployeesWithoutUserAccounts";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.CommandType = CommandType.StoredProcedure;
+
+            try
+            {
+                connection.Open();
+                SqlDataReader reader = command.ExecuteReader();
+
+                while (reader.Read())
+                {
+
+                    int EmployeeID = (int)reader["EmployeeID"];
+
+                    int JobTitleID = (int)reader["JobTitleID"];
+                    int WorkingBranchID = (int)reader["WorkingBranchID"];
+                    DateTime HireDate = (DateTime)reader["HireDate"];
+                    bool IsActive = (bool)reader["IsActive"];
+
+
+                    int PersonID = (int)reader["PersonID"];
+                    string FirstName = (string)reader["FirstName"];
+                    string SecondName = (string)reader["SecondName"];
+                    string ThirdName = (string)reader["ThirdName"];
+                    string LastName = (string)reader["LastName"];
+                    DateTime DateOfBirth = (DateTime)reader["DateOfBirth"];
+                    byte Gender = (byte)reader["Gender"];
+                    string Address = (string)reader["Address"];
+                    string Phone = (string)reader["Phone"];
+                    string Email = (string)reader["Email"];
+
+                    string? ImagePath = reader["ImagePath"] == DBNull.Value ? null : (string)reader["ImagePath"];
+
+
+
+                    PersonDTO PDTO = new PersonDTO(PersonID, FirstName, SecondName, ThirdName, LastName, DateOfBirth, (enGender)Gender, Address, Phone, Email, ImagePath);
+
+                    EmployeeList.Add(new EmployeeDTO(EmployeeID, JobTitleID, WorkingBranchID, HireDate, IsActive, PDTO));
+                }
+
+                reader.Close();
+            }
+            catch//(Exception ex)
+            { }
+            finally
+            { connection.Close(); }
+
+            return EmployeeList;
+        }
+
+
     }
 
 }

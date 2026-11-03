@@ -1,4 +1,5 @@
 ﻿using CarRentalAPI.Authorization;
+using CarRentalAPI.Global_Classes;
 using CarRentalAPIBusinessLayer;
 using CarRentalDataAccessLayer;
 using CarRentalDTOs;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -16,6 +18,14 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class EmployeesController : ControllerBase
     {
+
+        private readonly ILogger<EmployeesController> _logger;
+        public EmployeesController(ILogger<EmployeesController> logger)
+        {
+            _logger = logger;
+        }
+
+
         [Authorize(Roles = "Admin,Manager")]
         [HttpGet("All", Name = "GetAllEmployees")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -68,19 +78,30 @@ namespace CarRentalAPI.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<EmployeeDTO> AddEmployee(EmployeeDTO NewEmployeeDTO)
         {
-            if (NewEmployeeDTO == null)//you will add all validation here 
+            if (NewEmployeeDTO == null || string.IsNullOrEmpty(NewEmployeeDTO.PDTO.Email))//you will add all validation here 
             {
                 return BadRequest("Invalid Employee Data.");
             }
 
-            var Employee = new clsEmployee(NewEmployeeDTO);
+            var userID = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
+            if (!clsValidation.ValidateEmail(NewEmployeeDTO.PDTO.Email))
+            {
+                return BadRequest("Invalid Email Address.");
+            }
+
+
+            var Employee = new clsEmployee(NewEmployeeDTO);
 
             var result = Employee.Save();
 
             switch (result)
             {
                 case clsEmployee.enSaveResult.Success:
+                    string NewValue = JsonSerializer.Serialize(Employee.EDTO);
+                    var ALDTO = new AuditLogDTO(0, userID, "AddNew", "Employee", Employee.EmployeeID, null, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     NewEmployeeDTO.EmployeeID = Employee.EmployeeID;
                     return CreatedAtRoute("GetEmployeeByID",new { ID = Employee.EmployeeID },Employee.EDTO);
                         
@@ -115,11 +136,17 @@ namespace CarRentalAPI.Controllers
                 return BadRequest("Invalid Employee data.");
             }
 
+            var userID = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
             var authResult = await authorizationService.AuthorizeAsync(User, ID, "EmployeeOwnerOrAdmin");
 
             if (!authResult.Succeeded)
                 return Forbid(); // 403
 
+            if (!clsValidation.ValidateEmail(updatedEmployee.PDTO.Email))
+            {
+                return BadRequest("Invalid Email Address.");
+            }
 
             var Employee = clsEmployee.Find(ID);
 
@@ -128,13 +155,13 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Employee with ID {ID} not found.");
             }
 
-
+            string OldValue = JsonSerializer.Serialize(Employee.EDTO);
+            
 
             Employee.JobTitleID      = updatedEmployee.JobTitleID;
             Employee.WorkingBranchID = updatedEmployee.WorkingBranchID;
             Employee.HireDate        = updatedEmployee.HireDate;
-            
-
+    
             Employee.FirstName   = updatedEmployee.PDTO.FirstName;
             Employee.SecondName  = updatedEmployee.PDTO.SecondName;
             Employee.ThirdName   = updatedEmployee.PDTO.ThirdName;
@@ -146,14 +173,15 @@ namespace CarRentalAPI.Controllers
             Employee.Email       = updatedEmployee.PDTO.Email;
             Employee.ImagePath   = updatedEmployee.PDTO.ImagePath;
 
-
-
-
             var result = Employee.Save();
 
             switch (result)
             {
                 case clsEmployee.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(Employee.EDTO);
+                    var ALDTO = new AuditLogDTO(0, userID, "Update", "Employee", ID, OldValue, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
                     return Ok(Employee.EDTO);
 
                 case clsEmployee.enSaveResult.JobTitleNotFound:
@@ -187,9 +215,14 @@ namespace CarRentalAPI.Controllers
                 return BadRequest($"Not Accepted ID: {ID}");
             }
 
+            //var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var userID = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
             if (clsEmployee.DeleteEmployee(ID))
             {
+                var ALDTO = new AuditLogDTO(0, userID, "Delete", "Employee", ID, null, null, DateTime.UtcNow);
+                new clsAuditLog(ALDTO).Save();
+
                 return Ok($"Employee with ID: {ID} has been Deleted.");
             }
             else
@@ -210,6 +243,8 @@ namespace CarRentalAPI.Controllers
                 return BadRequest("Invalid Employee data.");
             }
 
+            var userID = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
             bool IsActive = clsEmployee.ActivateEmployee(ID);
 
             if (!IsActive)
@@ -217,6 +252,9 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Employee with ID {ID} not found , or already Active.");
             }
 
+            var ALDTO = new AuditLogDTO(0, userID, "Activated", "Employee" , ID, null, null, DateTime.UtcNow);
+            new clsAuditLog(ALDTO).Save();
+            
             return Ok($"Employee with ID: {ID} has been Activated.");
         }
 

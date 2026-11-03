@@ -3,6 +3,8 @@ using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -72,6 +74,12 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsRentalContract.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(RentalContract.RCDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "AddNew", "Rental Contract", RentalContract.RentalContractID, null, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     RentalContract = clsRentalContract.Find(RentalContract.RentalContractID);
                     NewRContractDTO = RentalContract!.RCDTO;
 
@@ -132,6 +140,8 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"RentalContract with ID {ID} not found.");
             }
 
+            string OldValue = JsonSerializer.Serialize(RentalContract.RCDTO);
+
             RentalContract.ContractNumber = updatedRentalContract.ContractNumber;
             
             RentalContract.ActualPickupDateTime = updatedRentalContract.ActualPickupDateTime;
@@ -150,6 +160,11 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsRentalContract.enSaveResult.Success:
+                    string NewValue = JsonSerializer.Serialize(RentalContract.RCDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "Update", "Rental Contract", ID, OldValue, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     return Ok(RentalContract.RCDTO);
 
                 case clsRentalContract.enSaveResult.ReservationNotFound:
@@ -204,6 +219,10 @@ namespace CarRentalAPI.Controllers
 
             if (clsRentalContract.DeleteRentalContract(ID))
             {
+                var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var ALDTO = new AuditLogDTO(0, userID, "Delete", "Rental Contract", ID, null, null, DateTime.UtcNow);
+                new clsAuditLog(ALDTO).Save();
+
                 return Ok($"Rental Contract with ID: {ID} has been Deleted.");
             }
             else

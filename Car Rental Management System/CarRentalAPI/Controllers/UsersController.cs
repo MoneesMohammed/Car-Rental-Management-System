@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Specialized;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -117,6 +119,11 @@ namespace CarRentalAPI.Controllers
             {
                 case clsUser.enSaveResult.Success:
 
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    string NewValue = JsonSerializer.Serialize(User.UDTO);
+                    var ALDTO = new AuditLogDTO(0, userID, "AddNew", "User", User.UserID, null, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     NewUserDTO.UserID = User.UserID;
                     NewUserDTO.CreateDate = DateTime.Now;       
                     NewUserDTO.RoleName = clsRole.Find(NewUserDTO.RoleID)!.RoleName ;
@@ -180,6 +187,11 @@ namespace CarRentalAPI.Controllers
                 });
             }
 
+            string OldValue = JsonSerializer.Serialize(User.UDTO);
+
+            bool RoleChanged = (User.RoleID != updatedUser.RoleID);
+
+            string OldRole = User.RoleID.ToString();
 
             User.RoleID = updatedUser.RoleID;
             User.UserName = updatedUser.UserName;
@@ -190,6 +202,18 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsUser.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(User.UDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "Update", "User", ID, OldValue, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
+                    if (RoleChanged)
+                    {
+                        ALDTO = new AuditLogDTO(0, userID, "Update Role", "User", ID, OldRole, User.RoleID.ToString(), DateTime.UtcNow);
+                        new clsAuditLog(ALDTO).Save();
+                    }
+                    
 
                     User.RoleName = clsRole.Find(updatedUser.RoleID)!.RoleName;
                     return Ok(User.UDTO);
@@ -230,6 +254,10 @@ namespace CarRentalAPI.Controllers
 
             if (clsUser.DeleteUser(ID))
             {
+                var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var ALDTO = new AuditLogDTO(0, userID, "Delete", "User", ID, null, null, DateTime.UtcNow);
+                new clsAuditLog(ALDTO).Save();
+
                 return Ok($"User with ID: {ID} has been Deleted.");
             }
             else
@@ -256,6 +284,10 @@ namespace CarRentalAPI.Controllers
             {
                 return NotFound($"User with ID {ID} not found , or already Active.");
             }
+
+            var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var ALDTO = new AuditLogDTO(0, userID, "Activated", "User", ID, null, null, DateTime.UtcNow);
+            new clsAuditLog(ALDTO).Save();
 
             return Ok($"User with ID: {ID} has been Activated.");
         }
@@ -364,6 +396,10 @@ namespace CarRentalAPI.Controllers
 
             if(!result)
                 return StatusCode(500, new { Message = "Error : Changing Password." });
+
+            var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var ALDTO = new AuditLogDTO(0, userID, "Change Password", "User", ID, null, null, DateTime.UtcNow);
+            new clsAuditLog(ALDTO).Save();
 
             return Ok(new { Message = "Password Changed Successfully." });
             

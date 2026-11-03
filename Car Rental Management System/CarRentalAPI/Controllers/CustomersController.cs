@@ -3,6 +3,8 @@ using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -71,6 +73,11 @@ namespace CarRentalAPI.Controllers
             {
                 case clsCustomer.enSaveResult.Success:
 
+                    string NewValue = JsonSerializer.Serialize(Customer.CDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "AddNew", "Customer", Customer.CustomerID, null, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     NewCustomerDTO.CustomerID = Customer.CustomerID;
                     NewCustomerDTO.PDTO.PersonID = Customer.PersonID;
                     NewCustomerDTO.CreateDate = DateTime.Now;
@@ -112,7 +119,8 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Customer with ID {ID} not found.");
             }
 
-            
+            string OldValue = JsonSerializer.Serialize(Customer.CDTO);
+
             Customer.DrivingLicenseNo = updatedCustomer.DrivingLicenseNo;
             Customer.DrivingLicenseExpiryDate = updatedCustomer.DrivingLicenseExpiryDate;
             
@@ -133,6 +141,12 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsCustomer.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(Customer.CDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "Update", "Customer", ID, OldValue, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     return Ok(Customer.CDTO);
 
                 case clsCustomer.enSaveResult.DLNoAlreadyUsed:
@@ -166,6 +180,10 @@ namespace CarRentalAPI.Controllers
 
             if (clsCustomer.DeleteCustomer(ID))
             {
+                var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var ALDTO = new AuditLogDTO(0, userID, "Delete", "Customer", ID, null, null, DateTime.UtcNow);
+                new clsAuditLog(ALDTO).Save();
+
                 return Ok($"Customer with ID: {ID} has been Deleted.");
             }
             else
@@ -192,6 +210,10 @@ namespace CarRentalAPI.Controllers
             {
                 return NotFound($"Customer with ID {ID} not found, or already Active.");
             }
+
+            var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var ALDTO = new AuditLogDTO(0, userID, "Activated", "Customer", ID, null, null, DateTime.UtcNow);
+            new clsAuditLog(ALDTO).Save();
 
             return Ok($"Customer with ID: {ID} has been Activated.");
         }

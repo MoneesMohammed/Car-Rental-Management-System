@@ -3,6 +3,8 @@ using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -69,6 +71,12 @@ namespace CarRentalAPI.Controllers
                 return StatusCode(500, new { Message = "Error : Adding Branch." });
             }
 
+            var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            string NewValue = JsonSerializer.Serialize(Branch.BDTO);
+            var ALDTO = new AuditLogDTO(0, userID, "AddNew", "Branch", Branch.BranchID, null, NewValue, DateTime.UtcNow);
+            new clsAuditLog(ALDTO).Save();
+
+
             NewBranchDTO.BranchID = Branch.BranchID;
 
             return CreatedAtRoute("GetBranchByID", new { ID = NewBranchDTO.BranchID }, NewBranchDTO);
@@ -92,7 +100,9 @@ namespace CarRentalAPI.Controllers
             {
                 return NotFound($"Branch with ID {ID} not found.");
             }
-            
+
+            string OldValue = JsonSerializer.Serialize(Branche.BDTO);
+
             Branche.BranchName = updatedBranch.BranchName;
             Branche.Address = updatedBranch.Address;
             Branche.City = updatedBranch.City;
@@ -102,6 +112,11 @@ namespace CarRentalAPI.Controllers
             {
                 return StatusCode(500, new { Message = "Error : Updating Branch." });
             }
+
+            string NewValue = JsonSerializer.Serialize(Branche.BDTO);
+            var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var ALDTO = new AuditLogDTO(0, userID, "Update", "Branche", ID, OldValue, NewValue, DateTime.UtcNow);
+            new clsAuditLog(ALDTO).Save();
 
             return Ok(Branche.BDTO);
         }
@@ -121,6 +136,10 @@ namespace CarRentalAPI.Controllers
 
             if (clsBranch.DeleteBranch(ID))
             {
+                var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var ALDTO = new AuditLogDTO(0, userID, "Delete", "Branch", ID, null, null, DateTime.UtcNow);
+                new clsAuditLog(ALDTO).Save();
+
                 return Ok($"Branch with ID: {ID} has been Deleted.");
             }
             else
@@ -147,6 +166,10 @@ namespace CarRentalAPI.Controllers
             {
                 return NotFound($"Branch with ID {ID} not found , or already Active.");
             }
+
+            var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var ALDTO = new AuditLogDTO(0, userID, "Activated", "Branch", ID, null, null, DateTime.UtcNow);
+            new clsAuditLog(ALDTO).Save();
 
             return Ok($"Branch with ID: {ID} has been Activated.");
         }

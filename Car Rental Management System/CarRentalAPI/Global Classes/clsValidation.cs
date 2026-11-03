@@ -15,16 +15,16 @@ namespace CarRentalAPI.Global_Classes
             return Regex.IsMatch(password, pattern);
         }
 
-        public static bool ValidateEmail(string Email)
+        public static bool ValidateEmail(string EmailAddress)
         {
-            if (string.IsNullOrEmpty(Email))
+            if (string.IsNullOrEmpty(EmailAddress))
                 return false;
 
             var pattern = @"^[a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$";
 
             var regex = new Regex(pattern);
 
-            return regex.IsMatch(Email);
+            return regex.IsMatch(EmailAddress);
         }
 
         public static bool ValidateInteger(string Number)

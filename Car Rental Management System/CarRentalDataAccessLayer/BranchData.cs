@@ -1,5 +1,7 @@
-﻿using CarRentalDTOs;
+﻿using CarRentalDataAccessLayer.Global_Classes;
+using CarRentalDTOs;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,7 +13,6 @@ namespace CarRentalDataAccessLayer
 {
     public class clsBranchData
     {
-
         public static BranchDTO? GetBranchInfoByBranchID(int BranchID)
         {
 
@@ -35,9 +36,10 @@ namespace CarRentalDataAccessLayer
 
                 reader.Close();
             }
-            catch//(Exception ex)
+            catch(Exception ex)
             {
-                return null;
+                clsLogger.LogError(ex, "An error occurred , retrieving branch information.");
+                throw;
             }
             finally
             {
@@ -82,8 +84,12 @@ namespace CarRentalDataAccessLayer
                 }
 
             }
-            catch//(Exception ex)
-            { ID = -1; }
+            catch(Exception ex)
+            { 
+                
+                clsLogger.LogError(ex, "An error occurred , Adding New branch.");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -118,8 +124,11 @@ namespace CarRentalDataAccessLayer
                     RowAffected = affectedRows;
                 }
             }
-            catch//(Exception ex)
-            { return false; }
+            catch(Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred , Updating New branch.");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -149,8 +158,11 @@ namespace CarRentalDataAccessLayer
                     RowAffected = affectedRows;
                 }
             }
-            catch//(Exception ex)
-            { return false; }
+            catch(Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred , Deleting branch.");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -189,8 +201,11 @@ namespace CarRentalDataAccessLayer
 
                 reader.Close();
             }
-            catch//(Exception ex)
-            { }
+            catch(Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred , retrieving all branch information.");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -221,10 +236,10 @@ namespace CarRentalDataAccessLayer
                     RowAffected = affectedRows;
                 }
             }
-            catch //(Exception ex)
+            catch (Exception ex)
             {
-
-                return false;
+                clsLogger.LogError(ex, "An error occurred , Activating Branch");
+                throw;
             }
             finally
             { connection.Close(); }
@@ -263,8 +278,11 @@ namespace CarRentalDataAccessLayer
 
                 reader.Close();
             }
-            catch//(Exception ex)
-            { }
+            catch(Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred , Retrieving All Deactivate Branches");
+                throw;
+            }
             finally
             { connection.Close(); }
 

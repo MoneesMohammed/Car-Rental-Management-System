@@ -3,6 +3,8 @@ using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -77,6 +79,12 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsReservation.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(Reservation.RDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "AddNew", "Reservation", Reservation.ReservationID, null, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     NewReservationDTO.ReservationID  = Reservation.ReservationID;
                     //NewReservationDTO.PickupBranchID = Reservation.PickupBranchID;
                     NewReservationDTO.AgreedPrice    = clsReservation.GetAgreedPrice(Reservation.ReservationID);
@@ -141,6 +149,8 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Reservation with ID {ID} not found.");
             }
 
+            string OldValue = JsonSerializer.Serialize(Reservation.RDTO);
+
             Reservation.CustomerID = updatedReservation.CustomerID;
             Reservation.CarID = updatedReservation.CarID;
             Reservation.PickupBranchID = updatedReservation.PickupBranchID;
@@ -154,6 +164,12 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsReservation.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(Reservation.RDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "Update", "Reservation", ID, OldValue, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     Reservation.AgreedPrice = clsReservation.GetAgreedPrice(ID);
                     return Ok(Reservation.RDTO);
 
@@ -211,6 +227,10 @@ namespace CarRentalAPI.Controllers
 
             if (clsReservation.DeleteReservation(ID))
             {
+                var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var ALDTO = new AuditLogDTO(0, userID, "Delete", "Reservation", ID, null, null, DateTime.UtcNow);
+                new clsAuditLog(ALDTO).Save();
+
                 return Ok($"Reservation with ID: {ID} has been Deleted.");
             }
             else

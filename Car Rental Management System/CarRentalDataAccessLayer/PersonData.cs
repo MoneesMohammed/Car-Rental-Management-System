@@ -1,7 +1,8 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using CarRentalDataAccessLayer.Global_Classes;
+using CarRentalDTOs;
+using Microsoft.Data.SqlClient;
 using System;
 using System.Data;
-using CarRentalDTOs;
 
 namespace CarRentalDataAccessLayer
 {
@@ -31,9 +32,10 @@ namespace CarRentalDataAccessLayer
 
                 reader.Close();
             }
-            catch//(Exception ex)
+            catch (Exception ex)
             {
-                return null;
+                clsLogger.LogError(ex, "An error occurred");
+                throw;
             }
             finally
             {
@@ -83,8 +85,11 @@ namespace CarRentalDataAccessLayer
                 }
 
             }
-            catch//(Exception ex)
-            { ID = -1; }
+            catch (Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -124,8 +129,11 @@ namespace CarRentalDataAccessLayer
                     RowAffected = affectedRows;
                 }
             }
-            catch//(Exception ex)
-            { return false; }
+            catch (Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -155,8 +163,11 @@ namespace CarRentalDataAccessLayer
                     RowAffected = affectedRows;
                 }
             }
-            catch//(Exception ex)
-            { return false; }
+            catch (Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -200,8 +211,11 @@ namespace CarRentalDataAccessLayer
 
                 reader.Close();
             }
-            catch//(Exception ex)
-            { }
+            catch (Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred");
+                throw;
+            }
             finally
             { connection.Close(); }
 
@@ -239,8 +253,11 @@ namespace CarRentalDataAccessLayer
                 }
 
             }
-            catch//(Exception ex)
-            { return false; }
+            catch (Exception ex)
+            {
+                clsLogger.LogError(ex, "An error occurred");
+                throw;
+            }
             finally
             { connection.Close(); }
 

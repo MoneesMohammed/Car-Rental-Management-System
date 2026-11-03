@@ -3,6 +3,8 @@ using CarRentalDTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -70,6 +72,12 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsPayment.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(Payment.PDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "AddNew", "Payment", Payment.PaymentID, null, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     NewPaymentDTO.PaymentID = Payment.PaymentID;
                     return CreatedAtRoute("GetPaymentByID", new { ID = NewPaymentDTO.PaymentID }, NewPaymentDTO);
 
@@ -111,6 +119,8 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Payment with ID {ID} not found.");
             }
 
+            string OldValue = JsonSerializer.Serialize(Payment.PDTO);
+
             Payment.RentalContractID = updatedPayment.RentalContractID;
             Payment.PaymentMethod = updatedPayment.PaymentMethod;
             Payment.PaymentDate = updatedPayment.PaymentDate;
@@ -124,6 +134,12 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsPayment.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(Payment.PDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "Update", "Payment", ID, OldValue, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     return Ok(Payment.PDTO);
 
                 case clsPayment.enSaveResult.RentalContractNotFound:

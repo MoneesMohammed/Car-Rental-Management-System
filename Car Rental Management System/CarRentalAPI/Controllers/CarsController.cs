@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
+using System.Text.Json;
 
 namespace CarRentalAPI.Controllers
 {
@@ -72,6 +74,11 @@ namespace CarRentalAPI.Controllers
             {
                 case clsCar.enSaveResult.Success:
 
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    string NewValue = JsonSerializer.Serialize(Car.CDTO);
+                    var ALDTO = new AuditLogDTO(0, userID, "AddNew", "Car", Car.CarID, null, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
+
                     NewCarDTO.CarID = Car.CarID;
                     return CreatedAtRoute("GetCarByID", new { ID = NewCarDTO.CarID }, NewCarDTO);
 
@@ -119,6 +126,8 @@ namespace CarRentalAPI.Controllers
                 return NotFound($"Car with ID {ID} not found.");
             }
 
+            string OldValue = JsonSerializer.Serialize(Car.CDTO);
+
             Car.Make = updatedCar.Make;
             Car.Model = updatedCar.Model;
             Car.Year = updatedCar.Year;
@@ -139,6 +148,11 @@ namespace CarRentalAPI.Controllers
             switch (result)
             {
                 case clsCar.enSaveResult.Success:
+
+                    string NewValue = JsonSerializer.Serialize(Car.CDTO);
+                    var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                    var ALDTO = new AuditLogDTO(0, userID, "Update", "Car", ID, OldValue, NewValue, DateTime.UtcNow);
+                    new clsAuditLog(ALDTO).Save();
 
                     return Ok(Car.CDTO);
 
@@ -181,6 +195,10 @@ namespace CarRentalAPI.Controllers
 
             if (clsCar.DeleteCar(ID))
             {
+                var userID = int.Parse(base.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var ALDTO = new AuditLogDTO(0, userID, "Delete", "Car", ID, null, null, DateTime.UtcNow);
+                new clsAuditLog(ALDTO).Save();
+
                 return Ok($"Car with ID: {ID} has been Deleted.");
             }
             else

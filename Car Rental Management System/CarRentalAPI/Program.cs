@@ -1,15 +1,19 @@
 using CarRentalAPI.Authorization;
+using CarRentalDataAccessLayer;
+using CarRentalDataAccessLayer.Global_Classes;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Security.Claims;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Threading.RateLimiting;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//clsLogger.Initialize(builder.Services.BuildServiceProvider().GetRequiredService<ILoggerFactory>());
+    
 // ===============================
 // JWT Authentication Configuration
 // ===============================
@@ -70,8 +74,9 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddSingleton<IAuthorizationHandler, EmployeeDataPolicyHandler>();
-builder.Services.AddScoped<IAuthorizationHandler, UserDataPolicyHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, UserDataPolicyHandler>();
 
+builder.Services.AddScoped<clsBranchData>();
 
 
 builder.Services.AddRateLimiter(options =>
@@ -188,6 +193,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Initialize Logger
+clsLogger.Initialize(app.Services.GetRequiredService<ILoggerFactory>());
+    
+
+
+
 // ===============================
 // HTTP Request Pipeline
 // ===============================
@@ -245,6 +256,22 @@ app.Use(async (context, next) =>
             ip
         );
     }
+
+    if (context.Response.StatusCode == StatusCodes.Status401Unauthorized)
+    {
+        var userId = context.User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "anonymous";
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var path = context.Request.Path.ToString();
+
+
+        // ? Centralized security log for authorization abuse
+        app.Logger.LogWarning("Unauthorized access. UserId={UserId}, Path={Path}, IP={IP}",
+            userId,
+            path,
+            ip
+        );
+    }
+
 });
 
 app.MapControllers();

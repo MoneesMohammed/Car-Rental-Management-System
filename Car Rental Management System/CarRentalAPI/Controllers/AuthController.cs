@@ -55,6 +55,7 @@ namespace CarRentalAPI.Controllers
             return accessToken;
         }
 
+        //A secure system is not only protected — it is observable.
         private readonly ILogger<AuthController> _logger;
         public AuthController(ILogger<AuthController> logger)
         {
@@ -122,14 +123,18 @@ namespace CarRentalAPI.Controllers
         [EnableRateLimiting("AuthLimiter")]
         public IActionResult Refresh([FromBody] RefreshRequest request)
         {
+            var IP = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
             var User = clsUser.Find(request.UserName);
-            
-            if (User == null)
-                return Unauthorized("Invalid refresh request");
 
-            if (!User.IsActive)
-                return Unauthorized("Invalid refresh request");
+            if (User == null || !User.IsActive)
+            {
+                _logger.LogWarning("Failed Refresh Token attempt (UserName not found Or Inactive). UserName={UserName}, IP={IP}",
+                                    request.UserName, IP);
 
+                 return Unauthorized("Invalid refresh request");
+            }
+             
             if (User.RefreshTokenRevokedAt != null)
                 return Unauthorized("Refresh token is revoked");
 
@@ -157,6 +162,10 @@ namespace CarRentalAPI.Controllers
 
             if (!User.SaveRefreshTokenData())
                 return StatusCode(500, "Could not complete");
+
+            
+
+            //_logger.LogInformation("Successful Refresh Token. UserID={UserID}, UserName={UserName}, IP={IP}", User.UserID, User.UserName, IP);
 
             return Ok(new TokenResponse
             {

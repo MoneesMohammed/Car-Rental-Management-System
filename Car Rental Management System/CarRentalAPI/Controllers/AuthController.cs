@@ -18,6 +18,15 @@ namespace CarRentalAPI.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
+        //A secure system is not only protected — it is observable.
+        private readonly ILogger<AuthController> _logger;
+        private readonly IConfiguration _configuration;
+        public AuthController(ILogger<AuthController> logger ,IConfiguration configuration )
+        {
+            _logger = logger;
+            _configuration = configuration;
+        }
+
         private static string GenerateRefreshToken()
         {
             var bytes = new byte[64];
@@ -37,9 +46,13 @@ namespace CarRentalAPI.Controllers
                 new Claim(ClaimTypes.Role, User.RoleName)
             };
 
-            var key = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes("THIS_IS_A_VERY_SECRET_KEY_123456"));
+            var jwtKey = _configuration["Jwt:Key"];
 
+            if (string.IsNullOrWhiteSpace(jwtKey))
+                throw new InvalidOperationException("JWT Security Key is missing.");
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+                
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
@@ -55,12 +68,7 @@ namespace CarRentalAPI.Controllers
             return accessToken;
         }
 
-        //A secure system is not only protected — it is observable.
-        private readonly ILogger<AuthController> _logger;
-        public AuthController(ILogger<AuthController> logger)
-        {
-            _logger = logger;
-        }
+        
 
 
         [HttpPost("login")]

@@ -20,7 +20,7 @@ The Frontend will be developed after completing my Frontend Web Development lear
 - [x] ASP.NET Core Web API
 - [x] CRUD APIs
 - [x] Database Integration
-- [ ] Authentication & Authorization
+- [x] Authentication & Authorization
 - [ ] Frontend Development
 - [ ] Connect Frontend with Backend APIs
 - [ ] Testing
